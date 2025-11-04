@@ -1,8 +1,13 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    Layout = "_Layout";           // Forzado para comprobar
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="alert alert-success my-3">
+    Layout is ON — Bootstrap loaded.
 </div>
+
+<ul class="list-unstyled">
+    <li class="mb-2"><a class="btn btn-primary" asp-controller="Products" asp-action="Index">Products</a></li>
+    <li class="mb-2"><a class="btn btn-secondary" asp-controller="Chat" asp-action="Index">Firmeza Assistant (AI)</a></li>
+</ul>

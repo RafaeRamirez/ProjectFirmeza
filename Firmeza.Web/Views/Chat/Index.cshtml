@@ -1,0 +1,24 @@
+@model string
+<h1>Chat</h1>
+
+<form method="post" asp-action="Index">
+    @Html.AntiForgeryToken()
+    <input name="userMessage" placeholder="Type your question..." required />
+    <button type="submit">Ask</button>
+</form>
+
+@if (!string.IsNullOrWhiteSpace(Model))
+{
+    <h2>Answer</h2>
+    <pre>@Model</pre>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div>
+        @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@e.ErrorMessage</div>
+        }
+    </div>
+}
