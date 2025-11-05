@@ -1,13 +1,17 @@
 ﻿@{
-    Layout = "_Layout";           // Forzado para comprobar
     ViewData["Title"] = "Home";
 }
 
 <div class="alert alert-success my-3">
-    Layout is ON — Bootstrap loaded.
+    If you see this green alert, Bootstrap is applied.
+</div>
+
+<div class="p-4 bg-light rounded-3 mb-3">
+  <h1 class="h3 mb-2">Welcome to Firmeza</h1>
+  <p class="mb-0">ASP.NET Core (.NET 8) + PostgreSQL + Bootstrap.</p>
 </div>
 
 <ul class="list-unstyled">
-    <li class="mb-2"><a class="btn btn-primary" asp-controller="Products" asp-action="Index">Products</a></li>
-    <li class="mb-2"><a class="btn btn-secondary" asp-controller="Chat" asp-action="Index">Firmeza Assistant (AI)</a></li>
+  <li>• <a asp-controller="Products" asp-action="Index">Products</a></li>
+  <li>• <a asp-controller="Chat" asp-action="Index">Firmeza Assistant (AI)</a></li>
 </ul>

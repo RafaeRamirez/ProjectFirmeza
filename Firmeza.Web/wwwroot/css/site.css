@@ -1,1 +1,18 @@
-body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Noto Sans",sans-serif}
+:root {
+  --fz-primary: #0d6efd;
+  --fz-bg: #f8f9fa;
+  --fz-text: #212529;
+}
+
+html, body { height: 100%; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", sans-serif;
+  background: var(--fz-bg);
+  color: var(--fz-text);
+  margin-bottom: 60px; /* del template */
+}
+
+.navbar-brand { letter-spacing: .3px; }
+.card { border-radius: .75rem; }
+.btn { border-radius: .5rem; }
+.page-title { margin-bottom: 1rem; }
