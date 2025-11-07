@@ -1,13 +1,25 @@
-@{ ViewData["Title"]="Registrar venta"; var products=(IEnumerable<Firmeza.Web.Models.Product>)ViewBag.Products; var customers=(IEnumerable<Firmeza.Web.Models.Customer>)ViewBag.Customers; }
+@{
+    ViewData["Title"] = "Registrar venta";
+    var products = (ViewBag.Products as IEnumerable<Firmeza.Web.Models.Product>) ?? new List<Firmeza.Web.Models.Product>();
+    var customers = (ViewBag.Customers as IEnumerable<Firmeza.Web.Models.Customer>) ?? new List<Firmeza.Web.Models.Customer>();
+}
 <h2>Registrar venta</h2>
 <form asp-action="Create" method="post" class="row gy-3">@Html.AntiForgeryToken()
 <div class="col-md-6"><label class="form-label">Cliente</label><select name="customerId" class="form-select" required>
-@foreach(var c in customers){<option value="@c.Id">@c.FullName</option>} </select></div>
+@if (customers.Any())
+{
+    @foreach(var c in customers){<option value="@c.Id">@c.FullName</option>}
+}
+</select></div>
 <div class="col-12"><hr/></div>
 <div id="items" class="col-12">
 <div class="row g-2 mb-2 item">
 <div class="col-md-6"><select name="productId" class="form-select" required>
-@foreach(var p in products){<option value="@p.Id" data-price="@p.UnitPrice">@p.Name (@p.UnitPrice.ToString("0.00"))</option>} </select></div>
+@if (products.Any())
+{
+    @foreach(var p in products){<option value="@p.Id" data-price="@p.UnitPrice">@p.Name (@p.UnitPrice.ToString("0.00"))</option>}
+}
+</select></div>
 <div class="col-md-2"><input name="quantity" class="form-control" type="number" min="1" value="1" required/></div>
 <div class="col-md-2"><input name="unitPrice" class="form-control" type="number" min="0" step="0.01" value="0.00" required/></div>
 <div class="col-md-2"><button class="btn btn-outline-danger w-100 remove">Quitar</button></div>
@@ -15,5 +27,51 @@
 <div class="col-12"><button id="add" class="btn btn-outline-secondary">Agregar línea</button> <button class="btn btn-success">Guardar venta</button> <a class="btn btn-secondary" asp-action="Index">Cancelar</a></div>
 </form>
 @section Scripts {
-<script>(function(){function wireRow(row){row.querySelector('.remove').addEventListener('click',function(e){e.preventDefault();row.remove();});var sel=row.querySelector('select[name="productId"]');var price=row.querySelector('input[name="unitPrice"]');if(sel&&price){sel.addEventListener('change',function(){var opt=sel.options[sel.selectedIndex];var p=opt.getAttribute('data-price');if(p) price.value=p;}); sel.dispatchEvent(new Event('change'));}} document.querySelectorAll('#items .item').forEach(wireRow); document.getElementById('add').addEventListener('click',function(e){e.preventDefault();var container=document.getElementById('items');var first=container.querySelector('.item');var clone=first.cloneNode(true);clone.querySelectorAll('input').forEach(i=>{if(i.name==='quantity') i.value='1'; if(i.name==='unitPrice') i.value='0.00';}); container.appendChild(clone); wireRow(clone);});})();</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const wireRow = (row) => {
+        const removeButton = row.querySelector('.remove');
+        if (removeButton) {
+            removeButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                row.remove();
+            });
+        }
+
+        const productSelect = row.querySelector('select[name="productId"]');
+        const unitPriceInput = row.querySelector('input[name="unitPrice"]');
+
+        if (productSelect && unitPriceInput) {
+            productSelect.addEventListener('change', () => {
+                const selectedOption = productSelect.options[productSelect.selectedIndex];
+                const price = selectedOption.getAttribute('data-price');
+                if (price) {
+                    unitPriceInput.value = price;
+                }
+            });
+            productSelect.dispatchEvent(new Event('change'));
+        }
+    };
+
+    document.querySelectorAll('#items .item').forEach(wireRow);
+
+    const addButton = document.getElementById('add');
+    if (addButton) {
+        addButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            const itemsContainer = document.getElementById('items');
+            const firstItem = itemsContainer.querySelector('.item');
+            if (firstItem) {
+                const clone = firstItem.cloneNode(true);
+                clone.querySelectorAll('input').forEach(input => {
+                    if (input.name === 'quantity') input.value = '1';
+                    if (input.name === 'unitPrice') input.value = '0.00';
+                });
+                itemsContainer.appendChild(clone);
+                wireRow(clone);
+            }
+        });
+    }
+});
+</script>
 }

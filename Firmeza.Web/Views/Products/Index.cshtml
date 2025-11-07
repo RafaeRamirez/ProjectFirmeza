@@ -12,9 +12,9 @@
     </form>
   </div>
 </div>
-<table class="table table-striped"><thead><tr><th>Nombre</th><th>Precio</th><th>Activo</th><th></th></tr></thead><tbody>
-@foreach(var p in Model){<tr><td>@p.Name</td><td>@p.UnitPrice.ToString("0.00")</td><td>@(p.IsActive?"Sí":"No")</td><td class="text-end">
+<table class="table table-striped"><thead><tr><th>Nombre</th><th>Precio</th><th>Stock</th><th>Activo</th><th></th></tr></thead><tbody>
+@foreach(var p in Model){<tr><td>@p.Name</td><td>@p.UnitPrice.ToString("0.00")</td><td>@p.Stock</td><td>@(p.IsActive?"Sí":"No")</td><td class="text-end">
 <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@p.Id">Editar</a>
-<form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button class="btn btn-sm btn-outline-danger">Eliminar</button></form>
+<a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@p.Id">Eliminar</a>
 </td></tr>}
 </tbody></table>

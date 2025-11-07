@@ -1,1 +1,46 @@
-<h2 class="mt-3">Panel administrativo</h2><p class="text-muted">Bienvenido.</p>
+@using Microsoft.AspNetCore.Identity
+
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+@{
+    var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
+    var isAdmin = isAuthenticated && (User?.IsInRole("Admin") ?? false);
+    var displayName = User?.Identity?.Name ?? "usuario";
+}
+
+@if (isAuthenticated)
+{
+    if (isAdmin)
+    {
+        <div class="text-center">
+            <h1 class="display-4">Panel de Administración</h1>
+            <p>Bienvenido, administrador. Utilice los siguientes enlaces para gestionar el sistema.</p>
+            <div class="list-group mt-4">
+                <a asp-controller="Products" asp-action="Index" class="list-group-item list-group-item-action">Gestionar Productos</a>
+                <a asp-controller="Customers" asp-action="Index" class="list-group-item list-group-item-action">Gestionar Clientes</a>
+                <a asp-controller="Sales" asp-action="Index" class="list-group-item list-group-item-action">Ver Ventas</a>
+                <a asp-controller="Admin" asp-action="Users" class="list-group-item list-group-item-action">Administrar Usuarios y Roles</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center">
+            <h1 class="display-4">Bienvenido a Firmeza</h1>
+            <p>Hola, @displayName. Su panel de usuario está en construcción.</p>
+        </div>
+    }
+}
+else
+{
+    <div class="text-center">
+        <h1 class="display-4">Bienvenido a Firmeza</h1>
+        <p>Plataforma de gestión de inventario y ventas. Inicie sesión o regístrese para comenzar.</p>
+        <p>
+            <a asp-controller="Account" asp-action="Login" class="btn btn-primary">Iniciar Sesión</a>
+            <a asp-controller="Account" asp-action="Register" class="btn btn-secondary">Registrarse</a>
+        </p>
+    </div>
+}

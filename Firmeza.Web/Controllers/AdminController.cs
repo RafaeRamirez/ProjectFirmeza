@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization; using Microsoft.AspNetCore.Identity; using Microsoft.AspNetCore.Mvc; using Firmeza.Web.Models; using Firmeza.Web.Models.ViewModels; using System.Linq;
 namespace Firmeza.Web.Controllers{
-[Authorize(Policy="RequireAdmin")]
+[Authorize(Policy="RequireSuperAdmin")]
 public class AdminController:Controller{
     private readonly UserManager<AppUser> _users; private readonly RoleManager<IdentityRole> _roles;
     public AdminController(UserManager<AppUser> users, RoleManager<IdentityRole> roles){ _users=users; _roles=roles; }

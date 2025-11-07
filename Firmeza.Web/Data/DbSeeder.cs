@@ -9,7 +9,7 @@ namespace Firmeza.Web.Data
         {
             var roles = sp.GetRequiredService<RoleManager<IdentityRole>>();
             var users = sp.GetRequiredService<UserManager<AppUser>>();
-            foreach (var r in new[] { "Admin", "Customer" })
+            foreach (var r in new[] { "SuperAdmin", "Admin", "Customer" })
                 if (!await roles.RoleExistsAsync(r))
                     await roles.CreateAsync(new IdentityRole(r));
 
@@ -19,7 +19,18 @@ namespace Firmeza.Web.Data
             {
                 admin = new AppUser { UserName = email, Email = email, EmailConfirmed = true };
                 var ok = await users.CreateAsync(admin, "Admin123!");
-                if (ok.Succeeded) await users.AddToRoleAsync(admin, "Admin");
+                if (ok.Succeeded)
+                {
+                    await users.AddToRoleAsync(admin, "SuperAdmin");
+                    await users.AddToRoleAsync(admin, "Admin");
+                }
+            }
+            else
+            {
+                if (!await users.IsInRoleAsync(admin, "SuperAdmin"))
+                    await users.AddToRoleAsync(admin, "SuperAdmin");
+                if (!await users.IsInRoleAsync(admin, "Admin"))
+                    await users.AddToRoleAsync(admin, "Admin");
             }
         }
     }

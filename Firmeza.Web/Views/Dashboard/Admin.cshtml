@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "Panel Administrador";
+}
+<div class="row g-4">
+    <div class="col-12">
+        <h2>Panel de administración</h2>
+        <p class="text-muted">Gestiona catálogos, clientes y ventas.</p>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Productos</h5>
+                <p class="card-text">Actualiza precios y estados.</p>
+                <a class="btn btn-outline-primary" asp-controller="Products" asp-action="Index">Ir al listado</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Clientes</h5>
+                <p class="card-text">Administra contactos y datos de los clientes.</p>
+                <a class="btn btn-outline-primary" asp-controller="Customers" asp-action="Index">Ver clientes</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Ventas</h5>
+                <p class="card-text">Registra nuevas ventas y consulta recibos.</p>
+                <a class="btn btn-outline-primary" asp-controller="Sales" asp-action="Index">Panel de ventas</a>
+            </div>
+        </div>
+    </div>
+</div>

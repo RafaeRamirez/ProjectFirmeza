@@ -1,1 +1,1 @@
-using Microsoft.AspNetCore.Authorization; using Microsoft.AspNetCore.Mvc; namespace Firmeza.Web.Controllers{ [Authorize(Policy="RequireAdmin")] public class HomeController:Controller{ public IActionResult Index()=>View(); } }
+using Microsoft.AspNetCore.Authorization; using Microsoft.AspNetCore.Mvc; namespace Firmeza.Web.Controllers{ public class HomeController:Controller{ public IActionResult Index()=>View(); } }

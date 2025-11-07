@@ -1,0 +1,44 @@
+@{
+    ViewData["Title"] = "Panel Super Admin";
+}
+<div class="row g-4">
+    <div class="col-12">
+        <h2>Bienvenido, Super Admin</h2>
+        <p class="text-muted">Desde aquí puedes administrar usuarios, roles y todo el catálogo.</p>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Gestión de usuarios</h5>
+                <p class="card-text">Crea y asigna roles a los usuarios registrados.</p>
+                <a class="btn btn-primary" asp-controller="Admin" asp-action="Users">Ir al administrador</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Catálogo y clientes</h5>
+                <p class="card-text">Accede al panel de productos, clientes y ventas.</p>
+                <div class="d-grid gap-2">
+                    <a class="btn btn-outline-dark" asp-controller="Products" asp-action="Index">Productos</a>
+                    <a class="btn btn-outline-dark" asp-controller="Customers" asp-action="Index">Clientes</a>
+                    <a class="btn btn-outline-dark" asp-controller="Sales" asp-action="Index">Ventas</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Atajos rápidos</h5>
+                <p class="card-text">Configura y monitorea el estado del sistema.</p>
+                <ul class="mb-0">
+                    <li>Revisa los reportes de ventas</li>
+                    <li>Coordina a los administradores</li>
+                    <li>Supervisa altas de clientes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

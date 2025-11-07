@@ -9,5 +9,7 @@ public class CustomersController:Controller{
     public async Task<IActionResult> Edit(Guid id){ var e=await _svc.GetAsync(id); if(e==null) return NotFound(); return View(e); }
     [HttpPost][ValidateAntiForgeryToken] public async Task<IActionResult> Edit(Customer m){ if(!ModelState.IsValid) return View(m); await _svc.UpdateAsync(m); return RedirectToAction(nameof(Index)); }
     public async Task<IActionResult> Delete(Guid id){ var e=await _svc.GetAsync(id); if(e==null) return NotFound(); return View(e); }
-    [HttpPost][ValidateAntiForgeryToken] public async Task<IActionResult> DeleteConfirmed(Guid id){ await _svc.DeleteAsync(id); return RedirectToAction(nameof(Index)); }
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(Guid id){ await _svc.DeleteAsync(id); return RedirectToAction(nameof(Index)); }
 }}

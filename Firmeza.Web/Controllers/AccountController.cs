@@ -12,7 +12,7 @@ public class AccountController:Controller{
         var user=await _users.FindByEmailAsync(model.Email);
         if(user is null){ ModelState.AddModelError(string.Empty, "Credenciales inválidas."); return View(model); }
         var res=await _signIn.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
-        if(res.Succeeded) return Redirect(returnUrl ?? Url.Action("Index","Home")!);
+        if(res.Succeeded) return Redirect(returnUrl ?? Url.Action("Index","Dashboard")!);
         ModelState.AddModelError(string.Empty, "Credenciales inválidas."); return View(model);
     }
     [HttpGet] public IActionResult Register()=>View(new RegisterViewModel());
@@ -21,7 +21,11 @@ public class AccountController:Controller{
         if(!ModelState.IsValid) return View(model);
         var user=new AppUser{ UserName=model.Email, Email=model.Email, EmailConfirmed=true };
         var res=await _users.CreateAsync(user, model.Password);
-        if(res.Succeeded) return RedirectToAction(nameof(Login));
+        if(res.Succeeded){
+            var addToCustomer=await _users.AddToRoleAsync(user, "Customer");
+            if(addToCustomer.Succeeded) return RedirectToAction(nameof(Login));
+            foreach(var e in addToCustomer.Errors) ModelState.AddModelError(string.Empty, e.Description);
+        }
         foreach(var e in res.Errors) ModelState.AddModelError(string.Empty, e.Description);
         return View(model);
     }
