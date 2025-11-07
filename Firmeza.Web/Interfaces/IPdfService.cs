@@ -1,0 +1,1 @@
+using Firmeza.Web.Models; namespace Firmeza.Web.Interfaces{ public interface IPdfService{ Task<byte[]> BuildReceiptAsync(Sale sale, Customer customer);} }

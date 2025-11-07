@@ -1,0 +1,1 @@
+using Firmeza.Web.Models; namespace Firmeza.Web.Interfaces{ public interface IExcelService{ Task<byte[]> ExportProductsAsync(IEnumerable<Product> items); Task<(List<Product> ok, List<string> errors)> ImportProductsAsync(Stream stream);} }

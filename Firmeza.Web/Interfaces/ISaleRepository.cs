@@ -1,0 +1,1 @@
+using Firmeza.Web.Models; namespace Firmeza.Web.Interfaces{ public interface ISaleRepository{ Task<List<Sale>> ListAsync(); Task<Sale?> GetAsync(Guid id); Task CreateAsync(Sale sale);} }

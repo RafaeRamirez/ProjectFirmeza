@@ -1,0 +1,6 @@
+@model IEnumerable<Firmeza.Web.Models.AppUser>
+@{ ViewData["Title"]="Usuarios"; }
+<h2>Usuarios</h2>
+<table class="table table-striped"><thead><tr><th>Correo</th><th></th></tr></thead><tbody>
+@foreach(var u in Model){ <tr><td>@(u.Email??u.UserName)</td><td class="text-end"><a class="btn btn-sm btn-outline-primary" asp-action="EditRoles" asp-route-id="@u.Id">Roles</a></td></tr> }
+</tbody></table>

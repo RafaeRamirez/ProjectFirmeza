@@ -1,13 +1,13 @@
-@model Firmeza.Web.Models.ViewModels.LoginViewModel
+@model Firmeza.Web.Models.ViewModels.RegisterViewModel
 
 @{
-    ViewData["Title"] = "Iniciar sesión";
+    ViewData["Title"] = "Crear cuenta";
 }
 
-<div class="container mt-5" style="max-width:480px;">
+<div class="container mt-5" style="max-width:520px;">
   <div class="card p-4">
-    <h2 class="mb-4 text-center">Iniciar sesión</h2>
-    <form asp-action="Login" method="post">
+    <h2 class="mb-4 text-center">Crear cuenta</h2>
+    <form asp-action="Register" method="post">
       @Html.AntiForgeryToken()
       <div class="mb-3">
         <label asp-for="Email" class="form-label">Correo</label>
@@ -19,12 +19,13 @@
         <input asp-for="Password" class="form-control" />
         <span asp-validation-for="Password" class="text-danger"></span>
       </div>
-      <div class="form-check mb-3">
-        <input asp-for="RememberMe" class="form-check-input" />
-        <label asp-for="RememberMe" class="form-check-label">Recordarme</label>
+      <div class="mb-3">
+        <label asp-for="ConfirmPassword" class="form-label">Confirmar contraseña</label>
+        <input asp-for="ConfirmPassword" class="form-control" />
+        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
       </div>
-      <button class="btn btn-primary w-100">Entrar</button>
-      <div class="text-center mt-3"><a asp-action="Register">Crear cuenta</a></div>
+      <button class="btn btn-success w-100">Registrar</button>
+      <div class="text-center mt-3"><a asp-action="Login">Volver al login</a></div>
     </form>
   </div>
 </div>

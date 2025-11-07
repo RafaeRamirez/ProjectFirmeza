@@ -1,0 +1,9 @@
+@model Firmeza.Web.Models.Product
+@{ ViewData["Title"]="Crear producto"; }
+<h2>Crear producto</h2>
+<form asp-action="Create" method="post" class="row g-3">@Html.AntiForgeryToken()
+<div class="col-md-6"><label asp-for="Name" class="form-label">Nombre</label><input asp-for="Name" class="form-control"/></div>
+<div class="col-md-3"><label asp-for="UnitPrice" class="form-label">Precio</label><input asp-for="UnitPrice" class="form-control"/></div>
+<div class="col-md-3 form-check mt-4"><input asp-for="IsActive" class="form-check-input"/><label asp-for="IsActive" class="form-check-label">Activo</label></div>
+<div class="col-12"><button class="btn btn-primary">Guardar</button> <a class="btn btn-secondary" asp-action="Index">Cancelar</a></div>
+</form>

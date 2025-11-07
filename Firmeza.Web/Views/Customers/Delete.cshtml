@@ -1,0 +1,6 @@
+@model Firmeza.Web.Models.Customer
+@{ ViewData["Title"]="Eliminar cliente"; }
+<h2>Eliminar cliente</h2><p>¿Eliminar <strong>@Model.FullName</strong>?</p>
+<form asp-action="DeleteConfirmed" method="post">@Html.AntiForgeryToken()<input type="hidden" asp-for="Id"/>
+<button class="btn btn-danger">Eliminar</button> <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
+</form>

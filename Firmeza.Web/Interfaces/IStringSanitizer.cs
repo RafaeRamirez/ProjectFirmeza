@@ -1,6 +1,1 @@
-namespace Firmeza.WebApplication.Interfaces;
-
-public interface IStringSanitizer
-{
-    string Clean(string? input);
-}
+namespace Firmeza.Web.Interfaces{ public interface IStringSanitizer{ string Clean(string? text); } }

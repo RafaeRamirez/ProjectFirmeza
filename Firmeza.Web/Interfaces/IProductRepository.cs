@@ -1,12 +1,1 @@
-using Firmeza.WebApplication.Models;
-
-namespace Firmeza.WebApplication.Interfaces;
-
-public interface IProductRepository
-{
-    Task<Product?> GetByIdAsync(Guid id, CancellationToken ct = default);
-    Task<List<Product>> ListAsync(string? search, CancellationToken ct = default);
-    Task AddAsync(Product product, CancellationToken ct = default);
-    Task UpdateAsync(Product product, CancellationToken ct = default);
-    Task DeleteAsync(Guid id, CancellationToken ct = default);
-}
+using Firmeza.Web.Models; namespace Firmeza.Web.Interfaces{ public interface IProductRepository{ Task<List<Product>> ListAsync(); Task<Product?> GetAsync(Guid id); Task CreateAsync(Product p); Task UpdateAsync(Product p); Task DeleteAsync(Guid id);} }

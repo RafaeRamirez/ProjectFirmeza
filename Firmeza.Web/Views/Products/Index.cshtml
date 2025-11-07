@@ -1,25 +1,20 @@
-@model IEnumerable<Firmeza.WebApplication.Models.Product>
-
-<h1>Products</h1>
-
-<form method="get">
-  <input type="text" name="q" placeholder="Search..." value="@Context.Request.Query["q"]" />
-  <button type="submit">Search</button>
-</form>
-
-<table>
-  <thead><tr><th>Name</th><th>Price</th><th>Active</th></tr></thead>
-  <tbody>
-  @foreach (var p in Model)
-  {
-    <tr><td>@p.Name</td><td>@p.UnitPrice</td><td>@p.IsActive</td></tr>
-  }
-  </tbody>
-</table>
-
-<h2>Add product</h2>
-<form method="post" asp-action="Create">
-  <input name="name" placeholder="Name" required />
-  <input name="unitPrice" type="number" step="0.01" placeholder="Price" required />
-  <button type="submit">Add</button>
-</form>
+@model IEnumerable<Firmeza.Web.Models.Product>
+@{ ViewData["Title"]="Productos"; }
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Productos</h2>
+  <div class="d-flex gap-2">
+    <a class="btn btn-success" asp-action="Create">Crear</a>
+    <a class="btn btn-outline-primary" asp-action="Export">Exportar Excel</a>
+    <form asp-action="Import" method="post" enctype="multipart/form-data" class="d-flex gap-2">
+      <input type="file" name="file" class="form-control form-control-sm" required />
+      <button class="btn btn-outline-secondary btn-sm" type="submit">Importar</button>
+      @Html.AntiForgeryToken()
+    </form>
+  </div>
+</div>
+<table class="table table-striped"><thead><tr><th>Nombre</th><th>Precio</th><th>Activo</th><th></th></tr></thead><tbody>
+@foreach(var p in Model){<tr><td>@p.Name</td><td>@p.UnitPrice.ToString("0.00")</td><td>@(p.IsActive?"Sí":"No")</td><td class="text-end">
+<a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@p.Id">Editar</a>
+<form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button class="btn btn-sm btn-outline-danger">Eliminar</button></form>
+</td></tr>}
+</tbody></table>

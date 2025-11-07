@@ -1,11 +1,1 @@
-using Firmeza.WebApplication.Interfaces;
-
-namespace Firmeza.WebApplication.Utils;
-
-/// <summary>
-/// Trims null/whitespace safely.
-/// </summary>
-public class StringSanitizer : IStringSanitizer
-{
-    public string Clean(string? input) => (input ?? string.Empty).Trim();
-}
+using Firmeza.Web.Interfaces; using System.Text.RegularExpressions; namespace Firmeza.Web.Utils{ public class StringSanitizer:IStringSanitizer{ private static readonly Regex _space=new Regex("\\s+", RegexOptions.Compiled); public string Clean(string? text)=> string.IsNullOrWhiteSpace(text)?string.Empty:_space.Replace(text, " ").Trim(); } }

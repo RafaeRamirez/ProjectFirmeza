@@ -1,23 +1,24 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Firmeza.WebApplication.Models;
+using Firmeza.Web.Models;
 
-namespace Firmeza.WebApplication.Data;
-
-public class AppDbContext : DbContext
+namespace Firmeza.Web.Data
 {
-    public DbSet<Product> Products => Set<Product>();
-
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
-    protected override void OnModelCreating(ModelBuilder b)
+    public class AppDbContext : IdentityDbContext<AppUser>
     {
-        b.Entity<Product>(cfg =>
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        public DbSet<Product> Products => Set<Product>();
+        public DbSet<Customer> Customers => Set<Customer>();
+        public DbSet<Sale> Sales => Set<Sale>();
+        public DbSet<SaleItem> SaleItems => Set<SaleItem>();
+
+        protected override void OnModelCreating(ModelBuilder b)
         {
-            cfg.ToTable("Products");
-            cfg.HasKey(p => p.Id);
-            cfg.Property(p => p.Name).IsRequired().HasMaxLength(120);
-            cfg.Property(p => p.UnitPrice).HasColumnType("numeric(18,2)");
-            cfg.Property(p => p.IsActive).HasDefaultValue(true);
-        });
+            base.OnModelCreating(b);
+            b.Entity<Product>().Property(p => p.UnitPrice).HasPrecision(18,2);
+            b.Entity<Sale>().Property(s => s.Total).HasPrecision(18,2);
+            b.Entity<SaleItem>().Property(i => i.UnitPrice).HasPrecision(18,2);
+            b.Entity<SaleItem>().Property(i => i.Subtotal).HasPrecision(18,2);
+        }
     }
 }

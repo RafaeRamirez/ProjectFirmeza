@@ -1,0 +1,1 @@
+using Microsoft.AspNetCore.Identity; namespace Firmeza.Web.Models{ public class AppUser:IdentityUser{} }
