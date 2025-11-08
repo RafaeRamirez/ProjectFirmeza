@@ -61,9 +61,30 @@ namespace Firmeza.Web.Services
                     IsActive = active
                 });
                 row++;
-            }
+        }
 
             return Task.FromResult((ok, errors));
+        }
+
+        public Task<byte[]> ExportSalesAsync(IEnumerable<Sale> sales)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using var pkg = new ExcelPackage();
+            var ws = pkg.Workbook.Worksheets.Add("Ventas");
+            ws.Cells[1, 1].Value = "Fecha";
+            ws.Cells[1, 2].Value = "Cliente";
+            ws.Cells[1, 3].Value = "Total";
+            ws.Cells[1, 4].Value = "Items";
+            int r = 2;
+            foreach (var sale in sales)
+            {
+                ws.Cells[r, 1].Value = sale.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+                ws.Cells[r, 2].Value = sale.Customer?.FullName ?? "-";
+                ws.Cells[r, 3].Value = sale.Total;
+                ws.Cells[r, 4].Value = sale.Items.Count;
+                r++;
+            }
+            return pkg.GetAsByteArrayAsync();
         }
     }
 }

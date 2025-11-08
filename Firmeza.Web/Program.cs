@@ -79,6 +79,21 @@ builder.Services.AddScoped<SaleService>();
 builder.Services.AddScoped<IExcelService, ExcelService>();
 builder.Services.AddScoped<IPdfService, PdfService>();
 
+var emailSection = builder.Configuration.GetSection("Email");
+builder.Services.Configure<EmailSettings>(emailSection);
+if (string.IsNullOrWhiteSpace(emailSection["Host"]))
+{
+    builder.Services.AddSingleton<IEmailSender, NullEmailSender>();
+}
+else
+{
+    builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+}
+
+builder.Services.AddScoped<IChatBotSettingsProvider, DbChatBotSettingsProvider>();
+builder.Services.AddHttpClient<GoogleApiClient>();
+builder.Services.AddHttpClient<IChatBotService, GoogleAiChatBotService>();
+
 var app = builder.Build();
 
 // 9) Pipeline
@@ -107,8 +122,8 @@ using (var scope = app.Services.CreateScope())
 var webRoot = app.Environment.WebRootPath;
 if (string.IsNullOrWhiteSpace(webRoot))
 {
-    // Si no hay wwwroot, usar ContentRoot/wwwroot y crearlo
     webRoot = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+    app.Environment.WebRootPath = webRoot;
 }
 Directory.CreateDirectory(webRoot);                          // asegura wwwroot
 Directory.CreateDirectory(Path.Combine(webRoot, "receipts"));// asegura /wwwroot/receipts
@@ -180,6 +195,84 @@ BEGIN
 END $$;
 """;
 
+    const string customersOwnerSql = """
+DO $$
+DECLARE
+    table_name text;
+BEGIN
+    IF to_regclass('public."Customers"') IS NOT NULL THEN
+        table_name := 'public."Customers"';
+    ELSIF to_regclass('public.customers') IS NOT NULL THEN
+        table_name := 'public.customers';
+    END IF;
+
+    IF table_name IS NOT NULL THEN
+        EXECUTE format('ALTER TABLE %s ADD COLUMN IF NOT EXISTS "CreatedByUserId" text NOT NULL DEFAULT '''';', table_name);
+    END IF;
+END $$;
+""";
+
+    const string salesOwnerSql = """
+DO $$
+DECLARE
+    table_name text;
+BEGIN
+    IF to_regclass('public."Sales"') IS NOT NULL THEN
+        table_name := 'public."Sales"';
+    ELSIF to_regclass('public.sales') IS NOT NULL THEN
+        table_name := 'public.sales';
+    END IF;
+
+    IF table_name IS NOT NULL THEN
+        EXECUTE format('ALTER TABLE %s ADD COLUMN IF NOT EXISTS "CreatedByUserId" text NOT NULL DEFAULT '''';', table_name);
+    END IF;
+END $$;
+""";
+
+    const string productsOwnerSql = """
+DO $$
+DECLARE
+    table_name text;
+BEGIN
+    IF to_regclass('public."Products"') IS NOT NULL THEN
+        table_name := 'public."Products"';
+    ELSIF to_regclass('public.products') IS NOT NULL THEN
+        table_name := 'public.products';
+    END IF;
+
+    IF table_name IS NOT NULL THEN
+        EXECUTE format('ALTER TABLE %s ADD COLUMN IF NOT EXISTS "CreatedByUserId" text NOT NULL DEFAULT '''';', table_name);
+    END IF;
+END $$;
+""";
+
+    const string chatBotTableSql = """
+CREATE TABLE IF NOT EXISTS "ChatBotSettings"
+(
+    "Id" SERIAL PRIMARY KEY,
+    "ApiKey" text NOT NULL DEFAULT '',
+    "Model" text NOT NULL DEFAULT 'models/gemini-1.5-flash',
+    "Scope" text NOT NULL DEFAULT 'https://www.googleapis.com/auth/cloud-platform',
+    "ServiceAccountJsonPath" text NOT NULL DEFAULT '',
+    "Endpoint" text NOT NULL DEFAULT 'https://generativelanguage.googleapis.com',
+    "UpdatedAt" timestamp without time zone NOT NULL DEFAULT NOW()
+);
+""";
+
+    const string chatBotColumnsSql = """
+ALTER TABLE "ChatBotSettings" ADD COLUMN IF NOT EXISTS "ApiKey" text NOT NULL DEFAULT '';
+ALTER TABLE "ChatBotSettings" ADD COLUMN IF NOT EXISTS "Model" text NOT NULL DEFAULT 'models/gemini-1.5-flash';
+ALTER TABLE "ChatBotSettings" ADD COLUMN IF NOT EXISTS "Scope" text NOT NULL DEFAULT 'https://www.googleapis.com/auth/cloud-platform';
+ALTER TABLE "ChatBotSettings" ADD COLUMN IF NOT EXISTS "ServiceAccountJsonPath" text NOT NULL DEFAULT '';
+ALTER TABLE "ChatBotSettings" ADD COLUMN IF NOT EXISTS "Endpoint" text NOT NULL DEFAULT 'https://generativelanguage.googleapis.com';
+ALTER TABLE "ChatBotSettings" ADD COLUMN IF NOT EXISTS "UpdatedAt" timestamp without time zone NOT NULL DEFAULT NOW();
+""";
+
     await db.Database.ExecuteSqlRawAsync(customersSql);
     await db.Database.ExecuteSqlRawAsync(productsSql);
+    await db.Database.ExecuteSqlRawAsync(customersOwnerSql);
+    await db.Database.ExecuteSqlRawAsync(salesOwnerSql);
+    await db.Database.ExecuteSqlRawAsync(productsOwnerSql);
+    await db.Database.ExecuteSqlRawAsync(chatBotTableSql);
+    await db.Database.ExecuteSqlRawAsync(chatBotColumnsSql);
 }

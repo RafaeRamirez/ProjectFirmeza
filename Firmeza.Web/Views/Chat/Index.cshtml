@@ -1,0 +1,77 @@
+@{
+    ViewData["Title"] = "Chatbot";
+}
+<div class="container py-4" id="chatbot-app" data-endpoint="@Url.Action("Ask", "Chat")">
+    <h2>Asistente inteligente</h2>
+    <p class="text-muted">Pregunta lo que necesites sobre el negocio y obtén ideas al instante.</p>
+    <div class="card">
+        <div class="card-body d-flex flex-column" style="height:500px;">
+            <div class="flex-grow-1 overflow-auto mb-3 border rounded p-3" id="chat-window">
+                <div class="text-muted">¡Hola! Soy el bot de Soporte Firmeza. ¿En qué puedo ayudarte?</div>
+            </div>
+            <div>
+                <textarea class="form-control mb-2" id="chat-input" rows="3" placeholder="Escribe tu mensaje..."></textarea>
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-outline-secondary" id="chat-clear">Limpiar</button>
+                    <button class="btn btn-primary" id="chat-send">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+<script>
+(function(){
+    const endpoint = document.getElementById('chatbot-app').dataset.endpoint;
+    const chatWindow = document.getElementById('chat-window');
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send');
+    const clearBtn = document.getElementById('chat-clear');
+
+    function appendMessage(text, owner){
+        const wrapper = document.createElement('div');
+        wrapper.className = owner === 'me' ? 'text-end mb-2' : 'mb-2';
+        const bubble = document.createElement('div');
+        bubble.className = owner === 'me' ? 'd-inline-block px-3 py-2 bg-primary text-white rounded-3' : 'd-inline-block px-3 py-2 bg-light rounded-3';
+        bubble.textContent = text;
+        wrapper.appendChild(bubble);
+        chatWindow.appendChild(wrapper);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    async function sendMessage(){
+        const message = input.value.trim();
+        if(!message) return;
+        appendMessage(message, 'me');
+        input.value = '';
+        sendBtn.disabled = true;
+        appendMessage('Pensando...', 'bot');
+        const placeholders = chatWindow.querySelectorAll('.mb-2:last-child div');
+        try{
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+            const data = await res.json();
+            placeholders[placeholders.length-1].textContent = data.reply ?? 'Sin respuesta.';
+        }catch(err){
+            placeholders[placeholders.length-1].textContent = 'No pude responder en este momento.';
+        }finally{
+            sendBtn.disabled = false;
+        }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    input.addEventListener('keydown', e => {
+        if(e.key === 'Enter' && !e.shiftKey){
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    clearBtn.addEventListener('click', () => {
+        chatWindow.innerHTML = '<div class="text-muted">Conversación reiniciada.</div>';
+    });
+})();
+</script>
+}

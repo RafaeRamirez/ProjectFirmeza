@@ -20,10 +20,14 @@
         <dd class="col-sm-10">@(Model.IsActive ? "Sí" : "No")</dd>
     </dl>
     
-    <form asp-action="Delete" method="post">
+    <form asp-action="Delete" method="post" class="d-flex gap-2">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
-        <button type="submit" class="btn btn-danger">Eliminar</button> |
-        <a asp-action="Index">Cancelar</a>
+        <button type="submit" name="force" value="false" class="btn btn-danger">Eliminar</button>
+        <button type="submit" name="force" value="true" class="btn btn-warning"
+                onclick="return confirm('Esta acción eliminará también las ventas relacionadas. ¿Desea continuar?');">
+            Eliminar definitivamente
+        </button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
     </form>
 </div>

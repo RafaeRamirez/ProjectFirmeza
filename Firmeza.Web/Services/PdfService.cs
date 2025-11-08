@@ -19,7 +19,7 @@ namespace Firmeza.Web.Services
                     p.Content().Column(col =>
                     {
                         col.Item().Text($"Cliente: {customer.FullName}");
-                        col.Item().Text($"Fecha: {sale.CreatedAt:yyyy-MM-dd HH:mm}");
+                        col.Item().Text($"Fecha: {sale.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm}");
                         col.Item().Table(t =>
                         {
                             t.ColumnsDefinition(cd =>
@@ -28,12 +28,14 @@ namespace Firmeza.Web.Services
                                 cd.RelativeColumn();
                                 cd.ConstantColumn(50);
                                 cd.ConstantColumn(80);
+                                cd.ConstantColumn(80);
                             });
                             t.Header(h =>
                             {
                                 h.Cell().Text("#").SemiBold();
                                 h.Cell().Text("Producto").SemiBold();
                                 h.Cell().Text("Cant.").SemiBold();
+                                h.Cell().Text("Precio").SemiBold();
                                 h.Cell().Text("Subtotal").SemiBold();
                             });
                             for (int i = 0; i < sale.Items.Count; i++)
@@ -42,6 +44,7 @@ namespace Firmeza.Web.Services
                                 t.Cell().Text((i + 1).ToString());
                                 t.Cell().Text(it.Product?.Name ?? "-");
                                 t.Cell().Text(it.Quantity.ToString());
+                                t.Cell().Text(it.UnitPrice.ToString("0.00"));
                                 t.Cell().Text(it.Subtotal.ToString("0.00"));
                             }
                         });

@@ -2,11 +2,11 @@
 @{
     ViewData["Title"] = "Detalle de venta";
     // Build safe URL for the receipt (avoid @Model.Id.pdf parse issue)
-    var receiptUrl = Url.Content($"~/receipts/recibo_{Model.Id}.pdf");
+    var receiptUrl = ViewBag.ReceiptUrl as string ?? Url.Content($"~/receipts/recibo_{Model.Id}.pdf");
 }
 
 <h2>Detalle de venta</h2>
-<p><strong>Fecha:</strong> @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
+<p><strong>Fecha:</strong> @Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
 
 <table class="table table-striped">
     <thead>

@@ -18,6 +18,7 @@
         @if (SignInManager.IsSignedIn(User))
         {
             <li class="nav-item"><a class="nav-link" asp-controller="Dashboard" asp-action="Index">Panel</a></li>
+            <li class="nav-item"><a class="nav-link" asp-controller="Chat" asp-action="Index">Chatbot</a></li>
             @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
             {
                 <li class="nav-item"><a class="nav-link" asp-controller="Products" asp-action="Index">Productos</a></li>

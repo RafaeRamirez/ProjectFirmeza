@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Firmeza.Web.Models;
@@ -11,6 +12,7 @@ namespace Firmeza.Web.Data
         public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<Sale> Sales => Set<Sale>();
         public DbSet<SaleItem> SaleItems => Set<SaleItem>();
+        public DbSet<ChatBotSettings> ChatBotSettings => Set<ChatBotSettings>();
 
         protected override void OnModelCreating(ModelBuilder b)
         {

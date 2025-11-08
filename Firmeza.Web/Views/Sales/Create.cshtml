@@ -13,33 +13,57 @@
 </select></div>
 <div class="col-12"><hr/></div>
 <div id="items" class="col-12">
-<div class="row g-2 mb-2 item">
-<div class="col-md-6"><select name="productId" class="form-select" required>
+<div class="row g-2 mb-2 item align-items-end">
+<div class="col-md-6"><label class="form-label">Producto</label><select name="productId" class="form-select" required>
 @if (products.Any())
 {
     @foreach(var p in products){<option value="@p.Id" data-price="@p.UnitPrice">@p.Name (@p.UnitPrice.ToString("0.00"))</option>}
 }
 </select></div>
-<div class="col-md-2"><input name="quantity" class="form-control" type="number" min="1" value="1" required/></div>
-<div class="col-md-2"><input name="unitPrice" class="form-control" type="number" min="0" step="0.01" value="0.00" required/></div>
-<div class="col-md-2"><button class="btn btn-outline-danger w-100 remove">Quitar</button></div>
+<div class="col-md-2"><label class="form-label">Cantidad</label><input name="quantity" class="form-control" type="number" min="1" value="1" required/></div>
+<div class="col-md-2"><label class="form-label">Precio</label><input name="unitPrice" class="form-control" type="number" min="0" step="0.01" value="0.00" required/></div>
+<div class="col-md-2 text-end"><label class="form-label">Subtotal</label><div class="fw-semibold subtotal">0.00</div></div>
+<div class="col-md-12 col-lg-1 mt-2 mt-lg-0"><button class="btn btn-outline-danger w-100 remove">Quitar</button></div>
 </div></div>
-<div class="col-12"><button id="add" class="btn btn-outline-secondary">Agregar línea</button> <button class="btn btn-success">Guardar venta</button> <a class="btn btn-secondary" asp-action="Index">Cancelar</a></div>
+<div class="col-12">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <button id="add" class="btn btn-outline-secondary">Agregar línea</button>
+        <div class="h5 mb-0">Total: <span id="sale-total">0.00</span></div>
+    </div>
+    <button class="btn btn-success">Guardar venta</button> <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
+</div>
 </form>
 @section Scripts {
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const totalElement = document.getElementById('sale-total');
+
+    const recalcTotals = () => {
+        let sum = 0;
+        document.querySelectorAll('#items .item').forEach(row => {
+            const quantity = parseFloat(row.querySelector('input[name="quantity"]').value) || 0;
+            const unitPrice = parseFloat(row.querySelector('input[name="unitPrice"]').value) || 0;
+            const subtotal = quantity * unitPrice;
+            const subtotalLabel = row.querySelector('.subtotal');
+            if (subtotalLabel) subtotalLabel.textContent = subtotal.toFixed(2);
+            sum += subtotal;
+        });
+        if (totalElement) totalElement.textContent = sum.toFixed(2);
+    };
+
     const wireRow = (row) => {
         const removeButton = row.querySelector('.remove');
         if (removeButton) {
             removeButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 row.remove();
+                recalcTotals();
             });
         }
 
         const productSelect = row.querySelector('select[name="productId"]');
         const unitPriceInput = row.querySelector('input[name="unitPrice"]');
+        const quantityInput = row.querySelector('input[name="quantity"]');
 
         if (productSelect && unitPriceInput) {
             productSelect.addEventListener('change', () => {
@@ -47,10 +71,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const price = selectedOption.getAttribute('data-price');
                 if (price) {
                     unitPriceInput.value = price;
+                    recalcTotals();
                 }
             });
             productSelect.dispatchEvent(new Event('change'));
         }
+
+        [unitPriceInput, quantityInput].forEach(input => {
+            if (input) {
+                input.addEventListener('input', recalcTotals);
+            }
+        });
     };
 
     document.querySelectorAll('#items .item').forEach(wireRow);
@@ -67,11 +98,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (input.name === 'quantity') input.value = '1';
                     if (input.name === 'unitPrice') input.value = '0.00';
                 });
+                clone.querySelector('.subtotal').textContent = '0.00';
                 itemsContainer.appendChild(clone);
                 wireRow(clone);
+                recalcTotals();
             }
         });
     }
+
+    recalcTotals();
 });
 </script>
 }

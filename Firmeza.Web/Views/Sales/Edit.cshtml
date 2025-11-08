@@ -1,0 +1,137 @@
+@model Firmeza.Web.Models.Sale
+@using Firmeza.Web.Models
+@{
+    ViewData["Title"] = "Editar venta";
+    var products = (ViewBag.Products as IEnumerable<Product>) ?? new List<Product>();
+    var customers = (ViewBag.Customers as IEnumerable<Customer>) ?? new List<Customer>();
+    var items = Model.Items.Any() ? Model.Items : new List<SaleItem> { new SaleItem { Quantity = 1, UnitPrice = products.FirstOrDefault()?.UnitPrice ?? 0m, ProductId = products.FirstOrDefault()?.Id ?? Guid.Empty } };
+}
+<h2>Editar venta</h2>
+<form asp-action="Edit" method="post" class="row gy-3">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="saleId" value="@Model.Id" />
+    <div class="col-md-6">
+        <label class="form-label">Cliente</label>
+        <select name="customerId" class="form-select" required>
+            @foreach (var c in customers)
+            {
+                <option value="@c.Id" selected="@(c.Id == Model.CustomerId ? "selected" : null)">@c.FullName</option>
+            }
+        </select>
+    </div>
+    <div class="col-12"><hr /></div>
+    <div id="items" class="col-12">
+        @foreach (var item in items)
+        {
+            <div class="row g-2 mb-2 item align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Producto</label>
+                    <select name="productId" class="form-select" required>
+                        @foreach (var p in products)
+                        {
+                            <option value="@p.Id" data-price="@p.UnitPrice" selected="@(p.Id == item.ProductId ? "selected" : null)">@p.Name (@p.UnitPrice.ToString("0.00"))</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Cantidad</label>
+                    <input name="quantity" class="form-control" type="number" min="1" value="@item.Quantity" required />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Precio</label>
+                    <input name="unitPrice" class="form-control" type="number" min="0" step="0.01" value="@item.UnitPrice.ToString("0.00")" required />
+                </div>
+                <div class="col-md-2 text-end">
+                    <label class="form-label">Subtotal</label>
+                    <div class="fw-semibold subtotal">@item.Subtotal.ToString("0.00")</div>
+                </div>
+                <div class="col-md-12 col-lg-1 mt-2 mt-lg-0">
+                    <button class="btn btn-outline-danger w-100 remove">Quitar</button>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <button id="add" class="btn btn-outline-secondary">Agregar línea</button>
+            <div class="h5 mb-0">Total: <span id="sale-total">0.00</span></div>
+        </div>
+        <button class="btn btn-primary">Guardar cambios</button>
+        <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
+    </div>
+</form>
+@section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const totalElement = document.getElementById('sale-total');
+
+    const recalcTotals = () => {
+        let sum = 0;
+        document.querySelectorAll('#items .item').forEach(row => {
+            const quantity = parseFloat(row.querySelector('input[name="quantity"]').value) || 0;
+            const unitPrice = parseFloat(row.querySelector('input[name="unitPrice"]').value) || 0;
+            const subtotal = quantity * unitPrice;
+            const subtotalLabel = row.querySelector('.subtotal');
+            if (subtotalLabel) subtotalLabel.textContent = subtotal.toFixed(2);
+            sum += subtotal;
+        });
+        if (totalElement) totalElement.textContent = sum.toFixed(2);
+    };
+
+    const wireRow = (row) => {
+        const removeButton = row.querySelector('.remove');
+        if (removeButton) {
+            removeButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (document.querySelectorAll('#items .item').length === 1) return;
+                row.remove();
+                recalcTotals();
+            });
+        }
+
+        const productSelect = row.querySelector('select[name="productId"]');
+        const unitPriceInput = row.querySelector('input[name="unitPrice"]');
+        const quantityInput = row.querySelector('input[name="quantity"]');
+
+        if (productSelect && unitPriceInput) {
+            productSelect.addEventListener('change', () => {
+                const selectedOption = productSelect.options[productSelect.selectedIndex];
+                const price = selectedOption.getAttribute('data-price');
+                if (price) {
+                    unitPriceInput.value = parseFloat(price).toFixed(2);
+                    recalcTotals();
+                }
+            });
+        }
+
+        [unitPriceInput, quantityInput].forEach(input => {
+            if (input) input.addEventListener('input', recalcTotals);
+        });
+    };
+
+    document.querySelectorAll('#items .item').forEach(wireRow);
+
+    const addButton = document.getElementById('add');
+    if (addButton) {
+        addButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            const itemsContainer = document.getElementById('items');
+            const firstItem = itemsContainer.querySelector('.item');
+            if (firstItem) {
+                const clone = firstItem.cloneNode(true);
+                clone.querySelectorAll('input').forEach(input => {
+                    if (input.name === 'quantity') input.value = '1';
+                    if (input.name === 'unitPrice') input.value = '0.00';
+                });
+                clone.querySelector('.subtotal').textContent = '0.00';
+                itemsContainer.appendChild(clone);
+                wireRow(clone);
+                recalcTotals();
+            }
+        });
+    }
+
+    recalcTotals();
+});
+</script>
+}

@@ -7,6 +7,10 @@
 <div class="container mt-5" style="max-width:480px;">
   <div class="card p-4">
     <h2 class="mb-4 text-center">Iniciar sesión</h2>
+    @if (TempData["LoginMessage"] is string msg && !string.IsNullOrWhiteSpace(msg))
+    {
+        <div class="alert alert-success">@msg</div>
+    }
     <form asp-action="Login" method="post">
       @Html.AntiForgeryToken()
       <div class="mb-3">
@@ -24,7 +28,10 @@
         <label asp-for="RememberMe" class="form-check-label">Recordarme</label>
       </div>
       <button class="btn btn-primary w-100">Entrar</button>
-      <div class="text-center mt-3"><a asp-action="Register">Crear cuenta</a></div>
+      <div class="text-center mt-3 d-flex flex-column gap-1">
+        <a asp-action="ForgotPassword">¿Olvidaste tu contraseña?</a>
+        <a asp-action="Register">Crear cuenta</a>
+      </div>
     </form>
   </div>
 </div>
