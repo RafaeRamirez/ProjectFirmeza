@@ -25,6 +25,12 @@ namespace Firmeza.Web.Repositories
             return await query.OrderBy(p => p.Name).ToListAsync();
         }
 
+        public Task<List<Product>> ListActiveAsync() =>
+            _db.Products.AsNoTracking()
+                .Where(p => p.IsActive && p.Stock > 0)
+                .OrderBy(p => p.Name)
+                .ToListAsync();
+
         public async Task CreateAsync(Product p)
         {
             _db.Products.Add(p);

@@ -1,0 +1,74 @@
+@model IEnumerable<Firmeza.Web.Models.ProductRequest>
+@{
+    ViewData["Title"] = "Solicitudes de productos";
+}
+<div class="glass-panel p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <span class="pill-badge"><i class="bi bi-inbox"></i> Solicitudes</span>
+            <h2 class="hero-heading mt-2">Revisar solicitudes de clientes</h2>
+        </div>
+    </div>
+    @if (TempData["RequestMessage"] is string alert && !string.IsNullOrWhiteSpace(alert))
+    {
+        <div class="alert alert-info mt-3">@alert</div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="glass-panel p-4 text-center">
+        <p class="text-muted mb-0">No hay solicitudes pendientes.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive glass-panel p-0">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cliente</th>
+                    <th>Cantidad</th>
+                    <th>Estado</th>
+                    <th>Solicitado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td>@r.Product?.Name</td>
+                    <td>@r.RequestedByEmail</td>
+                    <td>@r.Quantity</td>
+                    <td>
+                        <span class="badge @(r.Status == "Approved" ? "bg-success" : r.Status == "Rejected" ? "bg-danger" : "bg-warning text-dark")">@r.Status</span>
+                    </td>
+                    <td>@r.RequestedAt.ToLocalTime().ToString("g")</td>
+                    <td class="text-end">
+                        @if (r.Status == "Pending")
+                        {
+                            <form asp-action="Review" method="post" class="d-flex flex-column gap-2 align-items-end">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="RequestId" value="@r.Id" />
+                                <div class="w-100">
+                                    <input type="text" name="ResponseMessage" class="form-control form-control-sm" placeholder="Nota (opcional)" />
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-success" type="submit" name="Action" value="approve">Aprobar</button>
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" name="Action" value="reject">Rechazar</button>
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <small class="text-muted">@r.ResponseMessage</small>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

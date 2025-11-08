@@ -1,0 +1,16 @@
+@model Firmeza.Web.Models.AppUser
+@{
+    ViewData["Title"] = "Eliminar usuario";
+}
+<div class="glass-panel p-4">
+    <h2 class="text-danger">Eliminar usuario</h2>
+    <p>¿Estás seguro de que deseas eliminar la cuenta <strong>@(Model.Email ?? Model.UserName)</strong>? Esta acción no se puede deshacer.</p>
+    <form asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <div class="d-flex gap-2">
+            <button class="btn btn-danger" type="submit">Sí, eliminar</button>
+            <a asp-action="Users" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>

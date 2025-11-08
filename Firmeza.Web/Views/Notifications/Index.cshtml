@@ -1,0 +1,45 @@
+@model IEnumerable<Firmeza.Web.Models.ProductRequest>
+@{
+    ViewData["Title"] = "Notificaciones";
+}
+<section class="glass-panel p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <span class="pill-badge"><i class="bi bi-bell"></i> Notificaciones</span>
+            <h2 class="hero-heading mt-2">Solicitudes recientes</h2>
+        </div>
+    </div>
+</section>
+
+@if (!Model.Any())
+{
+    <div class="glass-panel p-4 text-center">
+        <p class="text-muted mb-0">No tienes notificaciones pendientes.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive glass-panel p-0">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Estado</th>
+                    <th>Nota</th>
+                    <th>Actualizado</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td>@r.Product?.Name</td>
+                    <td><span class="badge @(r.Status == "Approved" ? "bg-success" : r.Status == "Rejected" ? "bg-danger" : "bg-warning text-dark")">@r.Status</span></td>
+                    <td>@r.ResponseMessage</td>
+                    <td>@(r.ProcessedAt?.ToLocalTime().ToString("g") ?? r.RequestedAt.ToLocalTime().ToString("g"))</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

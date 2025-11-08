@@ -1,8 +1,118 @@
+@model Firmeza.Web.Models.ViewModels.CustomerDashboardViewModel
 @{
     ViewData["Title"] = "Mi Panel";
 }
-<div class="text-center py-5">
-    <h2>Bienvenido a Firmeza</h2>
-    <p class="lead">Tu cuenta está registrada como cliente. El equipo de ventas se pondrá en contacto para ayudarte.</p>
-    <p>Si necesitas acceso administrativo, comunícate con el super administrador.</p>
-</div>
+<section class="glass-panel p-4 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <span class="pill-badge"><i class="bi bi-person-badge"></i> Cliente activo</span>
+            <h2 class="hero-heading mt-3">Hola, @User?.Identity?.Name</h2>
+            <p class="text-muted mb-0">Monitorea tus compras, descarga recibos y mantente en contacto con nuestro equipo.</p>
+        </div>
+        <div class="d-flex gap-3">
+            <div class="stats-card text-center">
+                <small class="text-muted">Última compra</small>
+                <div class="fs-4 fw-bold">—</div>
+            </div>
+            <div class="stats-card text-center">
+                <small class="text-muted">Estado</small>
+                <div class="fs-4 fw-bold text-success">Activo</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (Model?.HasRecentUpdates == true)
+{
+    <div class="alert alert-success glass-panel border mt-3">
+        Se actualizaron solicitudes recientes. Revisa el listado inferior para ver el estado y las notas.
+    </div>
+}
+
+<section class="chatboard mb-4">
+    <div class="glass-panel p-4">
+        <h5 class="fw-semibold">Próximos pasos</h5>
+        <ul class="list-unstyled mt-3">
+            <li class="mb-3">
+                <strong>Revisa tus pedidos</strong>
+                <p class="text-muted mb-0">Tu historial aparecerá aquí cuando registremos tus primeras compras.</p>
+            </li>
+            <li class="mb-3">
+                <strong>Habla con el equipo</strong>
+                <p class="text-muted mb-0">Usa el chatbot para adelantar dudas o solicita una llamada.</p>
+            </li>
+            <li>
+                <strong>Solicita acceso adicional</strong>
+                <p class="text-muted mb-0">¿Necesitas que alguien más vea tus reportes? Contáctanos y lo configuramos.</p>
+            </li>
+        </ul>
+    </div>
+    <div class="glass-panel p-4">
+        <h5 class="fw-semibold">Canales de soporte</h5>
+        <div class="d-flex flex-column gap-3 mt-3">
+            <div class="stats-card">
+                <small class="text-muted">Chat</small>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                    <span>Asistente inteligente</span>
+                    <a asp-controller="Chat" asp-action="Index" class="btn btn-sm btn-primary">Abrir</a>
+                </div>
+            </div>
+            <div class="stats-card">
+                <small class="text-muted">Correo</small>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                    <span>soporte@firmeza.com</span>
+                    <a class="btn btn-sm btn-outline-secondary" href="mailto:soporte@firmeza.com">Escribir</a>
+                </div>
+            </div>
+            <div class="stats-card">
+                <small class="text-muted">Teléfono</small>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                    <span>+57 000 000 000</span>
+                    <button class="btn btn-sm btn-outline-secondary" disabled>Próximamente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="glass-panel p-4">
+    <h5 class="fw-semibold">¿Listo para comprar?</h5>
+    <p class="text-muted">Explora el catálogo actualizado y selecciona los productos que te interesan. Nuestro equipo finalizará la venta contigo.</p>
+    <a asp-controller="Products" asp-action="Catalog" class="btn btn-primary">Ver catálogo</a>
+</section>
+
+<section class="glass-panel p-4 mt-4">
+    <h5 class="fw-semibold">Tus solicitudes</h5>
+    @if (!(Model?.Requests?.Any() ?? false))
+    {
+        <p class="text-muted mb-0">Aún no has solicitado productos. Usa el catálogo para comenzar.</p>
+    }
+    else
+    {
+        <div class="table-responsive mt-3">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Estado</th>
+                        <th>Respuesta</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var req in Model!.Requests)
+                {
+                    <tr>
+                        <td>@req.Product?.Name</td>
+                        <td>@req.Quantity</td>
+                        <td><span class="badge @(req.Status == "Approved" ? "bg-success" : req.Status == "Rejected" ? "bg-danger" : "bg-warning text-dark")">@req.Status</span></td>
+                        <td>@req.ResponseMessage</td>
+                        <td>@req.RequestedAt.ToLocalTime().ToString("g")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

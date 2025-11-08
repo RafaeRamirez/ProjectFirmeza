@@ -78,6 +78,7 @@ builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<SaleService>();
 builder.Services.AddScoped<IExcelService, ExcelService>();
 builder.Services.AddScoped<IPdfService, PdfService>();
+builder.Services.AddScoped<ProductRequestService>();
 
 var emailSection = builder.Configuration.GetSection("Email");
 builder.Services.Configure<EmailSettings>(emailSection);
@@ -87,7 +88,7 @@ if (string.IsNullOrWhiteSpace(emailSection["Host"]))
 }
 else
 {
-    builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+    builder.Services.AddTransient<IEmailSender, MailKitEmailSender>();
 }
 
 builder.Services.AddScoped<IChatBotSettingsProvider, DbChatBotSettingsProvider>();
@@ -268,6 +269,29 @@ ALTER TABLE "ChatBotSettings" ADD COLUMN IF NOT EXISTS "Endpoint" text NOT NULL 
 ALTER TABLE "ChatBotSettings" ADD COLUMN IF NOT EXISTS "UpdatedAt" timestamp without time zone NOT NULL DEFAULT NOW();
 """;
 
+    const string productRequestsSql = """
+CREATE TABLE IF NOT EXISTS "ProductRequests"
+(
+    "Id" uuid PRIMARY KEY,
+    "ProductId" uuid NOT NULL,
+    "Quantity" integer NOT NULL,
+    "Note" text NULL,
+    "RequestedByUserId" text NOT NULL,
+    "RequestedByEmail" text NOT NULL,
+    "RequestedAt" timestamp without time zone NOT NULL DEFAULT NOW(),
+    "Status" text NOT NULL DEFAULT 'Pending',
+    "ResponseMessage" text NULL,
+    "ProcessedAt" timestamp without time zone NULL,
+    "ProcessedByUserId" text NULL
+);
+""";
+
+    const string productRequestsColumnsSql = """
+ALTER TABLE "ProductRequests" ADD COLUMN IF NOT EXISTS "ResponseMessage" text NULL;
+ALTER TABLE "ProductRequests" ADD COLUMN IF NOT EXISTS "ProcessedAt" timestamp without time zone NULL;
+ALTER TABLE "ProductRequests" ADD COLUMN IF NOT EXISTS "ProcessedByUserId" text NULL;
+""";
+
     await db.Database.ExecuteSqlRawAsync(customersSql);
     await db.Database.ExecuteSqlRawAsync(productsSql);
     await db.Database.ExecuteSqlRawAsync(customersOwnerSql);
@@ -275,4 +299,6 @@ ALTER TABLE "ChatBotSettings" ADD COLUMN IF NOT EXISTS "UpdatedAt" timestamp wit
     await db.Database.ExecuteSqlRawAsync(productsOwnerSql);
     await db.Database.ExecuteSqlRawAsync(chatBotTableSql);
     await db.Database.ExecuteSqlRawAsync(chatBotColumnsSql);
+    await db.Database.ExecuteSqlRawAsync(productRequestsSql);
+    await db.Database.ExecuteSqlRawAsync(productRequestsColumnsSql);
 }

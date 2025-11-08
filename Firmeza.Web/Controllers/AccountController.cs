@@ -48,8 +48,7 @@ public class AccountController:Controller{
             var encoded=WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
             var callback=Url.Action(nameof(ResetPassword), "Account", new { userId=user.Id, token=encoded }, Request.Scheme);
             var body=$"<p>Hola,</p><p>Recibimos una solicitud para restablecer tu contraseña. Haz clic en el siguiente enlace:</p><p><a href=\"{callback}\">Restablecer contraseña</a></p><p>Si no solicitaste este cambio, ignora este correo.</p>";
-            confirmation.ShowResetLink=_env.IsDevelopment();
-            if(confirmation.ShowResetLink) confirmation.ResetLink=callback;
+            var isDev=_env.IsDevelopment();
             try
             {
                 await _email.SendAsync(user.Email??model.Email, "Restablecer contraseña", body);
@@ -59,6 +58,11 @@ public class AccountController:Controller{
             {
                 _logger.LogError(ex, "No se pudo enviar el correo de restablecimiento.");
                 confirmation.ErrorMessage="No pudimos enviar el correo. Revisa la configuración SMTP.";
+                if(isDev)
+                {
+                    confirmation.ShowResetLink=true;
+                    confirmation.ResetLink=callback;
+                }
             }
         }
         return View("ForgotPasswordConfirmation", confirmation);

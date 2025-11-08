@@ -5,26 +5,60 @@ using System.Security.Claims;
 using System.IO;
 using Firmeza.Web.Interfaces;
 using Firmeza.Web.Models;
+using Firmeza.Web.Models.ViewModels;
 using Firmeza.Web.Services;
 
 namespace Firmeza.Web.Controllers
 {
-    [Authorize(Policy = "RequireAdmin")]
     public class ProductsController : Controller
     {
         private readonly ProductService _svc;
+        private readonly ProductRequestService _requests;
         private readonly IExcelService _excel;
         private readonly IWebHostEnvironment _env;
 
         private string? CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        public ProductsController(ProductService svc, IExcelService excel, IWebHostEnvironment env)
+        public ProductsController(ProductService svc, ProductRequestService requests, IExcelService excel, IWebHostEnvironment env)
         {
             _svc = svc;
+            _requests = requests;
             _excel = excel;
             _env = env;
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> Catalog()
+        {
+            var products = await _svc.ListAvailableAsync();
+            return View(products);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Request(ProductRequestInput input)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["CatalogMessage"] = "Datos inválidos en la solicitud.";
+                return RedirectToAction(nameof(Catalog));
+            }
+
+            var userId = CurrentUserId;
+            if (userId == null)
+                return Challenge();
+
+            var userEmail = User.Identity?.Name;
+            var created = await _requests.CreateAsync(input.ProductId, input.Quantity, input.Note, userId, userEmail);
+            TempData["CatalogMessage"] = created == null
+                ? "El producto ya no está disponible."
+                : "Solicitud enviada. Nuestro equipo te contactará pronto.";
+            return RedirectToAction(nameof(Catalog));
+        }
+
+        [Authorize(Policy = "RequireAdmin")]
         public async Task<IActionResult> Index()
         {
             var userId = CurrentUserId;
@@ -32,10 +66,12 @@ namespace Firmeza.Web.Controllers
             return View(await _svc.ListAsync(userId));
         }
 
+        [Authorize(Policy = "RequireAdmin")]
         public IActionResult Create() => View(new Product());
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "RequireAdmin")]
         public async Task<IActionResult> Create(Product m)
         {
             if (!ModelState.IsValid) return View(m);
@@ -45,6 +81,7 @@ namespace Firmeza.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Policy = "RequireAdmin")]
         public async Task<IActionResult> Edit(Guid id)
         {
             var userId = CurrentUserId;
@@ -56,6 +93,7 @@ namespace Firmeza.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "RequireAdmin")]
         public async Task<IActionResult> Edit(Product m)
         {
             if (!ModelState.IsValid) return View(m);
@@ -65,6 +103,7 @@ namespace Firmeza.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Policy = "RequireAdmin")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var userId = CurrentUserId;
@@ -76,6 +115,7 @@ namespace Firmeza.Web.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "RequireAdmin")]
         public async Task<IActionResult> DeleteConfirmed(Guid id, bool force = false)
         {
             var userId = CurrentUserId;
@@ -98,6 +138,7 @@ namespace Firmeza.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Policy = "RequireAdmin")]
         public async Task<IActionResult> Export()
         {
             var userId = CurrentUserId;
@@ -109,6 +150,7 @@ namespace Firmeza.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "RequireAdmin")]
         public async Task<IActionResult> Import(IFormFile file)
         {
             if (file == null || file.Length == 0) return RedirectToAction(nameof(Index));
