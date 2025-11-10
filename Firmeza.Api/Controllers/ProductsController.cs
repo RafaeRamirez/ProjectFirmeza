@@ -19,7 +19,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "SuperAdmin,Admin,Cliente")]
+    [Authorize]
     public async Task<ActionResult<PagedResponse<ProductDto>>> GetAll([FromQuery] ProductQueryParameters parameters)
     {
         var response = await _service.SearchAsync(parameters);
@@ -27,7 +27,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    [Authorize(Roles = "SuperAdmin,Admin,Cliente")]
+    [Authorize]
     public async Task<ActionResult<ProductDto>> GetById(Guid id)
     {
         var product = await _service.GetByIdAsync(id);

@@ -13,20 +13,20 @@ API REST y aplicación Razor para administrar productos, clientes y ventas. Esta
 - CRUD completo de productos con filtros por nombre, disponibilidad, rango de precios y ordenamiento.
 - CRUD de clientes y validaciones para evitar eliminar registros con ventas asociadas.
 - Gestión de ventas con actualización automática de stock y envío opcional de correos de confirmación (SMTP Gmail por defecto).
-- Identidad + JWT con roles `SuperAdmin`, `Admin` y `Cliente`. Los clientes se registran vía `/api/auth/register` y reciben token listo para consumir la API.
+- Identidad + JWT con roles `SuperAdmin` y `Admin`. Los clientes se registran vía `/api/auth/register` y reciben token listo para consumir la API.
 - AutoMapper y DTOs para exponer sólo los datos necesarios en las respuestas.
 - Swagger + JWT: UI protegida con botón "Authorize" para probar endpoints autenticados.
 
 ### Endpoints relevantes
 | Recurso | Método | Ruta | Notas |
 | --- | --- | --- | --- |
-| Auth | POST | `/api/auth/register` | Alta de usuario rol `Cliente` + Customer + token inmediato.
+| Auth | POST | `/api/auth/register` | Alta de usuario final + Customer + token inmediato.
 | Auth | POST | `/api/auth/login` | Devuelve token JWT.
 | Auth | GET | `/api/auth/me` | Datos del usuario basado en el token.
-| Productos | GET | `/api/products` | Paginado con filtros (`search`, `onlyAvailable`, `minPrice`, `maxPrice`).
+| Productos | GET | `/api/products` | Paginado con filtros (`search`, `onlyAvailable`, `minPrice`, `maxPrice`), requiere estar autenticado (sin rol específico).
 | Productos | POST/PUT/DELETE | `/api/products/{id}` | Sólo políticas `RequireAdmin`.
 | Clientes | CRUD | `/api/customers` | Restringido a administradores.
-| Ventas | POST | `/api/sales` | Disponible para `Admin` y `Cliente`, descuenta stock y envía correo.
+| Ventas | POST | `/api/sales` | Disponible para cualquier usuario autenticado, descuenta stock y envía correo.
 | Ventas | GET | `/api/sales` | Reporte histórico sólo para administradores.
 
 ### Autenticación y roles
@@ -35,8 +35,7 @@ API REST y aplicación Razor para administrar productos, clientes y ventas. Esta
 3. Consumir endpoints agregando header `Authorization: Bearer {token}`.
 4. Políticas:
    - `RequireAdmin`: `Admin` o `SuperAdmin`.
-   - `RequireCliente`: rol `Cliente`.
-   - Algunos endpoints (productos GET, crear ventas) aceptan ambos tipos.
+   - Algunos endpoints (productos GET, crear ventas) aceptan cualquier usuario autenticado (sin rol).
 
 ### Configuración (variables/env)
 | Clave | Descripción |

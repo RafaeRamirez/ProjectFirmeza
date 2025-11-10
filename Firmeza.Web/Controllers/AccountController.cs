@@ -30,9 +30,7 @@ public class AccountController:Controller{
         var user=new AppUser{ UserName=model.Email, Email=model.Email, EmailConfirmed=true };
         var res=await _users.CreateAsync(user, model.Password);
         if(res.Succeeded){
-            var addToCustomer=await _users.AddToRoleAsync(user, "Customer");
-            if(addToCustomer.Succeeded) return RedirectToAction(nameof(Login));
-            foreach(var e in addToCustomer.Errors) ModelState.AddModelError(string.Empty, e.Description);
+            return RedirectToAction(nameof(Login));
         }
         foreach(var e in res.Errors) ModelState.AddModelError(string.Empty, e.Description);
         return View(model);

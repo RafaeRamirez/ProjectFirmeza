@@ -34,7 +34,7 @@ public class SalesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "SuperAdmin,Admin,Cliente")]
+    [Authorize]
     public async Task<ActionResult<SaleDto>> Create(SaleCreateDto dto)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity?.Name ?? "system";

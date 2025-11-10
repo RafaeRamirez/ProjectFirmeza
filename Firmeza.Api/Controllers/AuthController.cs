@@ -18,20 +18,17 @@ public class AuthController : ControllerBase
     private readonly SignInManager<AppUser> _signInManager;
     private readonly ITokenService _tokenService;
     private readonly CustomerService _customers;
-    private readonly RoleManager<IdentityRole> _roleManager;
 
     public AuthController(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
         ITokenService tokenService,
-        CustomerService customers,
-        RoleManager<IdentityRole> roleManager)
+        CustomerService customers)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _customers = customers;
-        _roleManager = roleManager;
     }
 
     [HttpPost("register")]
@@ -58,7 +55,6 @@ public class AuthController : ControllerBase
             return BadRequest(errors);
         }
 
-        await EnsureClienteRoleAsync(user);
         await _customers.CreateAsync(new CustomerCreateDto
         {
             FullName = dto.FullName,
@@ -100,26 +96,11 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
 
-        var roles = await _userManager.GetRolesAsync(user);
         return Ok(new
         {
             user.Email,
-            Roles = roles,
-            IsCliente = roles.Contains("Cliente"),
+            Roles = await _userManager.GetRolesAsync(user),
             UserId = user.Id
         });
-    }
-
-    private async Task EnsureClienteRoleAsync(AppUser user)
-    {
-        if (!await _roleManager.RoleExistsAsync("Cliente"))
-        {
-            await _roleManager.CreateAsync(new IdentityRole("Cliente"));
-        }
-
-        if (!await _userManager.IsInRoleAsync(user, "Cliente"))
-        {
-            await _userManager.AddToRoleAsync(user, "Cliente");
-        }
     }
 }

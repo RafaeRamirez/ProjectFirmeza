@@ -14,7 +14,7 @@ namespace Firmeza.Web.Data
 
             var roles = sp.GetRequiredService<RoleManager<IdentityRole>>();
             var users = sp.GetRequiredService<UserManager<AppUser>>();
-            foreach (var r in new[] { "SuperAdmin", "Admin", "Customer" })
+            foreach (var r in new[] { "SuperAdmin", "Admin" })
                 if (!await roles.RoleExistsAsync(r))
                     await roles.CreateAsync(new IdentityRole(r));
 

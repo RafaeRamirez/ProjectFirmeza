@@ -64,7 +64,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization(opt =>
 {
     opt.AddPolicy("RequireAdmin", p => p.RequireRole("Admin", "SuperAdmin"));
-    opt.AddPolicy("RequireCliente", p => p.RequireRole("Cliente"));
 });
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
