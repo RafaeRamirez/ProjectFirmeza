@@ -1,6 +1,41 @@
-@Firmeza.Api_HostAddress = http://localhost:5053
+@host = http://localhost:5053
+@token = {{token}}
 
-GET {{Firmeza.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Registro de cliente
+POST {{host}}/api/auth/register
+Content-Type: application/json
 
-###
+{
+  "email": "cliente@firmeza.com",
+  "password": "Cliente123!",
+  "fullName": "Cliente Demo",
+  "phone": "555-0000"
+}
+
+### Login
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@firmeza.com",
+  "password": "Admin123!"
+}
+
+@token = {{login.response.body.$.accessToken}}
+
+### Listado de productos
+GET {{host}}/api/products?search=demo&onlyAvailable=true
+Authorization: Bearer {{token}}
+
+### Crear producto
+POST {{host}}/api/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Nuevo producto",
+  "unitPrice": 25.5,
+  "stock": 20,
+  "isActive": true
+}

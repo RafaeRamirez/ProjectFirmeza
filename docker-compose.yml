@@ -1,0 +1,49 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: FirmezaDb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  firmeza.api:
+    build:
+      context: .
+      dockerfile: Firmeza.Api/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=FirmezaDb;Username=postgres;Password=postgres;Ssl Mode=Prefer
+      Jwt__Issuer: Firmeza.Api
+      Jwt__Audience: Firmeza.Client
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-PLEASE_CHANGE_THIS_DEVELOPMENT_KEY_123456789}
+      Email__Host: smtp.gmail.com
+      Email__Port: 587
+      Email__From: techpulse913@gmail.com
+      Email__User: techpulse913@gmail.com
+      Email__Password: ycobqmueunyxqtmn
+      Email__RequireAuthentication: "true"
+      Email__EnableSsl: "true"
+    depends_on:
+      - postgres
+    ports:
+      - "5000:8080"
+  firmeza.web:
+    build:
+      context: .
+      dockerfile: Firmeza.Web/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=FirmezaDb;Username=postgres;Password=postgres;Ssl Mode=Prefer
+    depends_on:
+      - postgres
+    ports:
+      - "5100:8080"
+volumes:
+  postgres_data:
