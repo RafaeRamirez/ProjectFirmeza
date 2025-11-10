@@ -63,7 +63,13 @@ else
                         }
                         else
                         {
-                            <small class="text-muted">@r.ResponseMessage</small>
+                            <div class="d-flex flex-column align-items-end gap-1">
+                                <small class="text-muted">@r.ResponseMessage</small>
+                                @if (r.SaleId.HasValue)
+                                {
+                                    <a class="btn btn-sm btn-outline-primary" asp-controller="Sales" asp-action="Details" asp-route-id="@r.SaleId.Value">Ver venta</a>
+                                }
+                            </div>
                         }
                     </td>
                 </tr>

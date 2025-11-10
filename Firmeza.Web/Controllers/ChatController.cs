@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using Firmeza.Web.Interfaces;
 using Firmeza.Web.Models.ViewModels;
@@ -32,7 +34,7 @@ namespace Firmeza.Web.Controllers
             var model = Environment.GetEnvironmentVariable("GEMINI_MODEL")
                         ?? cfg["Gemini:Model"]
                         ?? "models/gemini-1.5-flash";
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
+            var url = $"https://generativelanguage.googleapis.com/v1beta/{model}:generateContent?key={apiKey}";
 
             var body = new
             {

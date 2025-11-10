@@ -1,5 +1,15 @@
 @model IEnumerable<Firmeza.Web.Models.Sale>
+@using Firmeza.Web.Models.ViewModels
 @{ ViewData["Title"]="Ventas"; }
+@{
+    decimal totalAmount = ViewBag.TotalSalesAmount is decimal d ? d : 0m;
+    var dailyTotals = ViewBag.DailyTotals as IEnumerable<SalesSummaryItem> ?? Enumerable.Empty<SalesSummaryItem>();
+    var monthlyTotals = ViewBag.MonthlyTotals as IEnumerable<SalesSummaryItem> ?? Enumerable.Empty<SalesSummaryItem>();
+    var yearlyTotals = ViewBag.YearlyTotals as IEnumerable<SalesSummaryItem> ?? Enumerable.Empty<SalesSummaryItem>();
+    string dailyFilter = ViewBag.DailyFilter as string ?? string.Empty;
+    string monthlyFilter = ViewBag.MonthlyFilter as string ?? string.Empty;
+    string yearlyFilter = ViewBag.YearlyFilter as string ?? string.Empty;
+}
 @{
     string fromValue = ViewBag.FilterFrom as string ?? "";
     string toValue = ViewBag.FilterTo as string ?? "";
@@ -20,7 +30,92 @@
            asp-route-maxTotal="@maxValue">Exportar Excel</a>
         <a class="btn btn-success" asp-action="Create">Registrar venta</a>
     </div>
+    </div>
 </div>
+
+<section class="glass-panel p-4 mb-4">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="stats-card h-100">
+                <small class="text-muted">Total general</small>
+                <div class="fs-3 fw-bold">@totalAmount.ToString("C")</div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <form method="get" class="mb-2">
+                        <input type="hidden" name="from" value="@fromValue" />
+                        <input type="hidden" name="to" value="@toValue" />
+                        <input type="hidden" name="customerId" value="@filterCustomer" />
+                        <input type="hidden" name="minTotal" value="@minValue" />
+                        <input type="hidden" name="maxTotal" value="@maxValue" />
+                        <label class="form-label">Filtrar día</label>
+                        <select name="daily" class="form-select" onchange="this.form.submit()">
+                            <option value="">Todos</option>
+                            @foreach (var item in dailyTotals.Take(10))
+                            {
+                                <option value="@item.Label" selected="@(dailyFilter == item.Label ? "selected" : null)">@item.Label</option>
+                            }
+                        </select>
+                    </form>
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var item in dailyTotals.Take(5))
+                        {
+                            <li class="d-flex justify-content-between"><span>@item.Label</span><strong>@item.Total.ToString("C")</strong></li>
+                        }
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <form method="get" class="mb-2">
+                        <input type="hidden" name="from" value="@fromValue" />
+                        <input type="hidden" name="to" value="@toValue" />
+                        <input type="hidden" name="customerId" value="@filterCustomer" />
+                        <input type="hidden" name="minTotal" value="@minValue" />
+                        <input type="hidden" name="maxTotal" value="@maxValue" />
+                        <label class="form-label">Filtrar mes</label>
+                        <select name="monthly" class="form-select" onchange="this.form.submit()">
+                            <option value="">Todos</option>
+                            @foreach (var item in monthlyTotals.Take(10))
+                            {
+                                <option value="@item.Label" selected="@(monthlyFilter == item.Label ? "selected" : null)">@item.Label</option>
+                            }
+                        </select>
+                    </form>
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var item in monthlyTotals.Take(5))
+                        {
+                            <li class="d-flex justify-content-between"><span>@item.Label</span><strong>@item.Total.ToString("C")</strong></li>
+                        }
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <form method="get" class="mb-2">
+                        <input type="hidden" name="from" value="@fromValue" />
+                        <input type="hidden" name="to" value="@toValue" />
+                        <input type="hidden" name="customerId" value="@filterCustomer" />
+                        <input type="hidden" name="minTotal" value="@minValue" />
+                        <input type="hidden" name="maxTotal" value="@maxValue" />
+                        <label class="form-label">Filtrar año</label>
+                        <select name="yearly" class="form-select" onchange="this.form.submit()">
+                            <option value="">Todos</option>
+                            @foreach (var item in yearlyTotals)
+                            {
+                                <option value="@item.Label" selected="@(yearlyFilter == item.Label ? "selected" : null)">@item.Label</option>
+                            }
+                        </select>
+                    </form>
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var item in yearlyTotals)
+                        {
+                            <li class="d-flex justify-content-between"><span>@item.Label</span><strong>@item.Total.ToString("C")</strong></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <form method="get" class="card card-body mb-3">
     <div class="row g-3 align-items-end">

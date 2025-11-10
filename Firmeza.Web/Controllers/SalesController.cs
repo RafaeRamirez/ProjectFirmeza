@@ -26,6 +26,45 @@ public class SalesController:Controller{
         ViewBag.FilterMinTotal = minTotal?.ToString("0.##");
         ViewBag.FilterMaxTotal = maxTotal?.ToString("0.##");
         var sales=await _svc.ListAsync(from, to, customerId, minTotal, maxTotal, userId);
+
+        var dailyFilter = Request.Query["daily"].ToString();
+        var monthlyFilter = Request.Query["monthly"].ToString();
+        var yearlyFilter = Request.Query["yearly"].ToString();
+
+        var localEntries = sales.Select(s => new { Date = s.CreatedAt.ToLocalTime(), Amount = s.Total }).ToList();
+        ViewBag.TotalSalesAmount = localEntries.Sum(x => x.Amount);
+        var dailyGroups = localEntries
+            .GroupBy(x => x.Date.Date)
+            .OrderByDescending(g => g.Key)
+            .Select(g => new Firmeza.Web.Models.ViewModels.SalesSummaryItem
+            {
+                Label = g.Key.ToString("yyyy-MM-dd"),
+                Total = g.Sum(x => x.Amount)
+            });
+        var monthlyGroups = localEntries
+            .GroupBy(x => new { x.Date.Year, x.Date.Month })
+            .OrderByDescending(g => g.Key.Year).ThenByDescending(g => g.Key.Month)
+            .Select(g => new Firmeza.Web.Models.ViewModels.SalesSummaryItem
+            {
+                Label = $"{g.Key.Year}-{g.Key.Month:00}",
+                Total = g.Sum(x => x.Amount)
+            });
+        var yearlyGroups = localEntries
+            .GroupBy(x => x.Date.Year)
+            .OrderByDescending(g => g.Key)
+            .Select(g => new Firmeza.Web.Models.ViewModels.SalesSummaryItem
+            {
+                Label = g.Key.ToString(),
+                Total = g.Sum(x => x.Amount)
+            });
+
+        ViewBag.DailyTotals = string.IsNullOrWhiteSpace(dailyFilter) ? dailyGroups : dailyGroups.Where(d => d.Label == dailyFilter);
+        ViewBag.MonthlyTotals = string.IsNullOrWhiteSpace(monthlyFilter) ? monthlyGroups : monthlyGroups.Where(m => m.Label == monthlyFilter);
+        ViewBag.YearlyTotals = string.IsNullOrWhiteSpace(yearlyFilter) ? yearlyGroups : yearlyGroups.Where(y => y.Label == yearlyFilter);
+        ViewBag.DailyFilter = dailyFilter;
+        ViewBag.MonthlyFilter = monthlyFilter;
+        ViewBag.YearlyFilter = yearlyFilter;
+
         return View(sales);
     }
     public async Task<IActionResult> Create(){ var userId=CurrentUserId; if(userId==null) return Forbid(); await LoadLookupsAsync(userId); return View(); }

@@ -29,6 +29,11 @@ namespace Firmeza.Web.Data
                 .WithMany()
                 .HasForeignKey(pr => pr.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
+            b.Entity<ProductRequest>()
+                .HasOne(pr => pr.Sale)
+                .WithMany()
+                .HasForeignKey(pr => pr.SaleId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

@@ -2,6 +2,9 @@
 using DotNetEnv;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Polly;
+using Polly.Contrib.WaitAndRetry;
+using System.Net;
 
 // App
 using Firmeza.Web.Data;
@@ -92,8 +95,15 @@ else
 }
 
 builder.Services.AddScoped<IChatBotSettingsProvider, DbChatBotSettingsProvider>();
-builder.Services.AddHttpClient<GoogleApiClient>();
-builder.Services.AddHttpClient<IChatBotService, GoogleAiChatBotService>();
+var chatRetryDelays = Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromMilliseconds(300), retryCount: 5);
+builder.Services.AddHttpClient<IChatBotService, GoogleAiChatBotService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("User-Agent", "FirmezaChat/1.0");
+})
+.AddPolicyHandler(Policy<HttpResponseMessage>
+    .HandleResult(r => r.StatusCode == (HttpStatusCode)429 || (int)r.StatusCode >= 500)
+    .WaitAndRetryAsync(chatRetryDelays));
 
 var app = builder.Build();
 
@@ -290,6 +300,7 @@ CREATE TABLE IF NOT EXISTS "ProductRequests"
 ALTER TABLE "ProductRequests" ADD COLUMN IF NOT EXISTS "ResponseMessage" text NULL;
 ALTER TABLE "ProductRequests" ADD COLUMN IF NOT EXISTS "ProcessedAt" timestamp without time zone NULL;
 ALTER TABLE "ProductRequests" ADD COLUMN IF NOT EXISTS "ProcessedByUserId" text NULL;
+ALTER TABLE "ProductRequests" ADD COLUMN IF NOT EXISTS "SaleId" uuid NULL;
 """;
 
     await db.Database.ExecuteSqlRawAsync(customersSql);

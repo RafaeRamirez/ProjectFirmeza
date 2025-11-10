@@ -107,7 +107,13 @@
                         <td>@req.Product?.Name</td>
                         <td>@req.Quantity</td>
                         <td><span class="badge @(req.Status == "Approved" ? "bg-success" : req.Status == "Rejected" ? "bg-danger" : "bg-warning text-dark")">@req.Status</span></td>
-                        <td>@req.ResponseMessage</td>
+                        <td>
+                            @req.ResponseMessage
+                            @if (req.SaleId.HasValue)
+                            {
+                                <div><a asp-controller="Sales" asp-action="Details" asp-route-id="@req.SaleId.Value">Ver venta</a></div>
+                            }
+                        </td>
                         <td>@req.RequestedAt.ToLocalTime().ToString("g")</td>
                     </tr>
                 }

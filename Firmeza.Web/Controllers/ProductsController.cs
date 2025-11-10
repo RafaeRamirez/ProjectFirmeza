@@ -38,7 +38,7 @@ namespace Firmeza.Web.Controllers
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Request(ProductRequestInput input)
+        public async Task<IActionResult> RequestProduct(ProductRequestInput input)
         {
             if (!ModelState.IsValid)
             {

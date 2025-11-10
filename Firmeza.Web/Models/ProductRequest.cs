@@ -16,5 +16,7 @@ namespace Firmeza.Web.Models
         public string? ResponseMessage { get; set; }
         public DateTime? ProcessedAt { get; set; }
         public string? ProcessedByUserId { get; set; }
+        public Guid? SaleId { get; set; }
+        public Sale? Sale { get; set; }
     }
 }

@@ -44,8 +44,9 @@ namespace Firmeza.Web.Services
             var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY")
                          ?? Environment.GetEnvironmentVariable("GOOGLE_API_KEY");
             var model = Environment.GetEnvironmentVariable("GEMINI_MODEL");
-            var scope = Environment.GetEnvironmentVariable("GEMINI_SCOPE")
-                        ?? "https://www.googleapis.com/auth/cloud-platform";
+            var scope = Environment.GetEnvironmentVariable("GEMINI_OAUTH_SCOPE")
+                        ?? Environment.GetEnvironmentVariable("GEMINI_SCOPE")
+                        ?? "https://www.googleapis.com/auth/generative-language";
             var endpoint = Environment.GetEnvironmentVariable("GEMINI_ENDPOINT");
             var saPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
 

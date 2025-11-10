@@ -66,13 +66,21 @@ namespace Firmeza.Web.Services
                 {
                     status = "Rejected";
                     message = "Stock insuficiente.";
+                    await RemoveSaleAsync(request);
                 }
                 else
                 {
                     product.Stock -= request.Quantity;
                     if (product.Stock <= 0)
                         product.IsActive = false;
+
+                    var sale = await CreateSaleAsync(request, product, processedByUserId);
+                    request.SaleId = sale?.Id;
                 }
+            }
+            else
+            {
+                await RemoveSaleAsync(request);
             }
 
             request.Status = status;
@@ -83,6 +91,70 @@ namespace Firmeza.Web.Services
 
             await NotifyAsync(request);
             return true;
+        }
+
+        private async Task<Sale?> CreateSaleAsync(ProductRequest request, Product product, string processedByUserId)
+        {
+            Customer? customer = null;
+
+            if (!string.IsNullOrWhiteSpace(request.RequestedByEmail))
+            {
+                customer = await _db.Customers.FirstOrDefaultAsync(c => c.Email == request.RequestedByEmail);
+            }
+
+            if (customer == null)
+            {
+                customer = new Customer
+                {
+                    FullName = request.RequestedByEmail ?? "Cliente Firmeza",
+                    Email = request.RequestedByEmail,
+                    CreatedByUserId = processedByUserId
+                };
+                _db.Customers.Add(customer);
+            }
+
+            var sale = new Sale
+            {
+                CustomerId = customer.Id,
+                CreatedAt = DateTime.UtcNow,
+                CreatedByUserId = processedByUserId,
+                Items = new List<SaleItem>
+                {
+                    new SaleItem
+                    {
+                        ProductId = product.Id,
+                        Quantity = request.Quantity,
+                        UnitPrice = product.UnitPrice,
+                        Subtotal = product.UnitPrice * request.Quantity
+                    }
+                },
+                Total = product.UnitPrice * request.Quantity
+            };
+
+            _db.Sales.Add(sale);
+            return sale;
+        }
+
+        private async Task RemoveSaleAsync(ProductRequest request)
+        {
+            if (!request.SaleId.HasValue)
+                return;
+
+            var sale = await _db.Sales.Include(s => s.Items).FirstOrDefaultAsync(s => s.Id == request.SaleId.Value);
+            if (sale != null)
+            {
+                _db.SaleItems.RemoveRange(sale.Items);
+                _db.Sales.Remove(sale);
+            }
+
+            var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == request.ProductId);
+            if (product != null)
+            {
+                product.Stock += request.Quantity;
+                product.IsActive = true;
+            }
+
+            request.SaleId = null;
         }
 
         private async Task NotifyAsync(ProductRequest request)
