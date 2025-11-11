@@ -3,7 +3,7 @@
 API REST y aplicación Razor para administrar productos, clientes y ventas. Esta iteración agrega la capa Firmeza.Api para que otros módulos (Blazor, apps móviles) consuman la misma base de datos PostgreSQL y compartan reglas de negocio.
 
 ## Arquitectura rápida
-- **Firmeza.Api**: ASP.NET Core 8, Entity Framework Core + PostgreSQL, Identity + JWT, AutoMapper, MailKit para SMTP.
+- **Firmeza.Api**: ASP.NET Core 8, Entity Framework Core + PostgreSQL, Identity + JWT, AutoMapper y MailKit para SMTP.
 - **Firmeza.Web**: módulo Razor existente reutilizando la misma base de datos.
 - **Firmeza.Tests**: proyecto xUnit con pruebas unitarias de servicios.
 - **Infraestructura**: Dockerfiles listos y `docker-compose.yml` que levanta PostgreSQL + API + Web.
@@ -13,7 +13,7 @@ API REST y aplicación Razor para administrar productos, clientes y ventas. Esta
 - CRUD completo de productos con filtros por nombre, disponibilidad, rango de precios y ordenamiento.
 - CRUD de clientes y validaciones para evitar eliminar registros con ventas asociadas.
 - Gestión de ventas con actualización automática de stock y envío opcional de correos de confirmación (SMTP Gmail por defecto).
-- Identidad + JWT con roles `SuperAdmin` y `Admin`. Los clientes se registran vía `/api/auth/register` y reciben token listo para consumir la API.
+- Identidad + JWT con roles `SuperAdmin` y `Admin`. Los usuarios finales se registran vía `/api/auth/register` y reciben token listo para consumir la API (sin rol adicional).
 - AutoMapper y DTOs para exponer sólo los datos necesarios en las respuestas.
 - Swagger + JWT: UI protegida con botón "Authorize" para probar endpoints autenticados.
 
