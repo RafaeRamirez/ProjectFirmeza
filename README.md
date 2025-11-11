@@ -1,102 +1,102 @@
 # ProjectFirmeza
 
-API REST y aplicación Razor para administrar productos, clientes y ventas. Esta iteración agrega la capa Firmeza.Api para que otros módulos (Blazor, apps móviles) consuman la misma base de datos PostgreSQL y compartan reglas de negocio.
+REST API plus Razor front-end to manage products, customers, and sales. This iteration introduces the Firmeza.Api layer so other modules (Blazor, mobile apps) can consume the same PostgreSQL database and share business logic.
 
-## Arquitectura rápida
-- **Firmeza.Api**: ASP.NET Core 8, Entity Framework Core + PostgreSQL, Identity + JWT, AutoMapper y MailKit para SMTP.
-- **Firmeza.Web**: módulo Razor existente reutilizando la misma base de datos.
-- **Firmeza.Tests**: proyecto xUnit con pruebas unitarias de servicios.
-- **Infraestructura**: Dockerfiles listos y `docker-compose.yml` que levanta PostgreSQL + API + Web.
+## Architecture at a Glance
+- **Firmeza.Api**: ASP.NET Core 8, Entity Framework Core + PostgreSQL, Identity + JWT, AutoMapper, MailKit for SMTP.
+- **Firmeza.Web**: existing Razor module that reuses the same database.
+- **Firmeza.Tests**: xUnit project with unit tests over core services.
+- **Infrastructure**: ready-to-use Dockerfiles and `docker-compose.yml` to spin up PostgreSQL + API + Web.
 
-## API principal (Firmeza.Api)
-### Características clave
-- CRUD completo de productos con filtros por nombre, disponibilidad, rango de precios y ordenamiento.
-- CRUD de clientes y validaciones para evitar eliminar registros con ventas asociadas.
-- Gestión de ventas con actualización automática de stock y envío opcional de correos de confirmación (SMTP Gmail por defecto).
-- Identidad + JWT con roles `SuperAdmin` y `Admin`. Los usuarios finales se registran vía `/api/auth/register` y reciben token listo para consumir la API (sin rol adicional).
-- AutoMapper y DTOs para exponer sólo los datos necesarios en las respuestas.
-- Swagger + JWT: UI protegida con botón "Authorize" para probar endpoints autenticados.
+## Core API (Firmeza.Api)
+### Highlights
+- Full CRUD for products with filters (search, availability, price range, sorting).
+- Customer CRUD with validations to avoid deleting records that still have sales.
+- Sales management updates stock automatically and can send confirmation emails (Gmail SMTP by default).
+- Identity + JWT with `SuperAdmin` and `Admin` roles. End users self-register via `/api/auth/register` and get a token immediately (no extra role required).
+- AutoMapper + DTOs expose only the data needed by clients.
+- Swagger + JWT: UI secured with “Authorize” button to test protected endpoints.
 
-### Endpoints relevantes
-| Recurso | Método | Ruta | Notas |
+### Key Endpoints
+| Resource | Method | Route | Notes |
 | --- | --- | --- | --- |
-| Auth | POST | `/api/auth/register` | Alta de usuario final + Customer + token inmediato.
-| Auth | POST | `/api/auth/login` | Devuelve token JWT.
-| Auth | GET | `/api/auth/me` | Datos del usuario basado en el token.
-| Productos | GET | `/api/products` | Paginado con filtros (`search`, `onlyAvailable`, `minPrice`, `maxPrice`), requiere estar autenticado (sin rol específico).
-| Productos | POST/PUT/DELETE | `/api/products/{id}` | Sólo políticas `RequireAdmin`.
-| Clientes | CRUD | `/api/customers` | Restringido a administradores.
-| Ventas | POST | `/api/sales` | Disponible para cualquier usuario autenticado, descuenta stock y envía correo.
-| Ventas | GET | `/api/sales` | Reporte histórico sólo para administradores.
+| Auth | POST | `/api/auth/register` | Creates the user + customer entry and issues a token.
+| Auth | POST | `/api/auth/login` | Returns a JWT token.
+| Auth | GET | `/api/auth/me` | User info based on the current token.
+| Products | GET | `/api/products` | Paged list with filters; requires authentication only.
+| Products | POST/PUT/DELETE | `/api/products/{id}` | Restricted to the `RequireAdmin` policy.
+| Customers | CRUD | `/api/customers` | Admin-only area.
+| Sales | POST | `/api/sales` | Any authenticated user can create a sale; stock is updated and email can be sent.
+| Sales | GET | `/api/sales` | Historical report for administrators.
 
-### Autenticación y roles
-1. Registrar cliente: `POST /api/auth/register` → token inmediato.
-2. Login: `POST /api/auth/login` → token + expiración (configurable en `Jwt:ExpirationMinutes`).
-3. Consumir endpoints agregando header `Authorization: Bearer {token}`.
-4. Políticas:
-   - `RequireAdmin`: `Admin` o `SuperAdmin`.
-   - Algunos endpoints (productos GET, crear ventas) aceptan cualquier usuario autenticado (sin rol).
+### Authentication and Roles
+1. Register: `POST /api/auth/register` → immediate token.
+2. Login: `POST /api/auth/login` → token + expiration (configured under `Jwt:ExpirationMinutes`).
+3. Call endpoints using `Authorization: Bearer {token}`.
+4. Policies:
+   - `RequireAdmin`: user must be `Admin` or `SuperAdmin`.
+   - Some endpoints (e.g., `GET /api/products`, `POST /api/sales`) only need the user to be authenticated.
 
-### Configuración (variables/env)
-| Clave | Descripción |
+### Configuration (env/appsettings)
+| Key | Description |
 | --- | --- |
-| `ConnectionStrings__Default` | Cadena completa hacia PostgreSQL. Debe apuntar a la misma BD que Razor.
-| `Jwt__Issuer`, `Jwt__Audience`, `Jwt__SigningKey`, `Jwt__ExpirationMinutes` | Parámetros del token JWT.
-| `Email__*` | Datos SMTP (por defecto Gmail). Cambia `Host`, `Port`, `User`, `Password` para usar un servidor corporativo.
-| `Seed__AdminEmail`, `Seed__AdminPassword` | Credenciales del super admin inicial.
+| `ConnectionStrings__Default` | Full PostgreSQL connection string (shared with Razor app).
+| `Jwt__Issuer`, `Jwt__Audience`, `Jwt__SigningKey`, `Jwt__ExpirationMinutes` | JWT parameters.
+| `Email__*` | SMTP settings (defaults to Gmail). Replace host/credentials for corporate SMTP.
+| `Seed__AdminEmail`, `Seed__AdminPassword` | Initial admin credentials.
 
-El archivo `appsettings.json` incluye valores de referencia y `appsettings.Development.json` redefine la cadena local.
+`appsettings.json` holds reference values; `appsettings.Development.json` overrides the local connection string.
 
-### Ejecución local (CLI)
+### Local Run (CLI)
 ```bash
-# Restaurar dependencias
+# Restore dependencies
 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet restore
 
-# Lanzar API (puerto 5053 por defecto en launchSettings)
+# Run API (defaults to port 5053 per launchSettings)
 dotnet run --project Firmeza.Api
 
-# Ejecutar Razor Web (opcional)
+# Optionally run the Razor site
 dotnet run --project Firmeza.Web
 ```
-> Nota: si usas `ConnectionStrings__Default` vía `.env`, la API la detecta automáticamente (se carga con DotNetEnv en Development).
+> Tip: when `ConnectionStrings__Default` is defined via `.env`, the API loads it automatically (DotNetEnv in Development).
 
-### Swagger / documentación interactiva
-- URL: `https://localhost:7053/swagger` (o el puerto configurado).
-- Usa el botón **Authorize** e ingresa `Bearer {token}` para probar endpoints.
-- El archivo `Firmeza.Api/Firmeza.Api.http` contiene ejemplos para VS/REST Client (registro, login, productos).
+### Swagger / Interactive Docs
+- URL: `https://localhost:7053/swagger` (or the configured port).
+- Press **Authorize** and paste `Bearer {token}` to exercise protected endpoints.
+- `Firmeza.Api/Firmeza.Api.http` ships sample requests (register, login, product CRUD).
 
-### Emails SMTP
-- Se implementó `IEmailSender` con MailKit (`MailKitEmailSender`) y una alternativa `NullEmailSender` para entornos sin SMTP.
-- Puedes reemplazar el servidor cambiando las claves `Email__*` sin tocar código.
-- Al crear una venta se envía un correo con el detalle (si el cliente tiene email configurado).
+### SMTP Emails
+- `IEmailSender` implemented with MailKit (`MailKitEmailSender`) and a `NullEmailSender` fallback.
+- Swap SMTP servers by changing `Email__*` values—no code changes required.
+- When a sale is created, a confirmation email is sent if the customer has an email address.
 
-## Pruebas automatizadas (xUnit)
-- Proyecto: `Firmeza.Tests`.
-- Incluye una prueba de `ProductService` que valida el filtrado de disponibilidad utilizando `Microsoft.EntityFrameworkCore.InMemory`.
-- Ejecutar todas las pruebas:
+## Automated Tests (xUnit)
+- Project: `Firmeza.Tests`.
+- Contains a sample `ProductService` test validating the “only available” filter using EF Core InMemory.
+- Run all tests with:
 ```bash
 dotnet test
 ```
 
-## Docker y despliegue inicial
-1. Ajusta `JWT_SIGNING_KEY` antes de publicar (variable usada en `docker-compose`).
-2. Levanta todo el entorno (PostgreSQL + API + Web) con:
+## Docker & Deployment Draft
+1. Set a secure `JWT_SIGNING_KEY` before publishing (used by `docker-compose`).
+2. Bring up PostgreSQL + API + Web:
 ```bash
 docker compose up --build
 ```
-3. Servicios expuestos:
+3. Exposed services:
    - API: `http://localhost:5000`
-   - Web (Razor): `http://localhost:5100`
-   - PostgreSQL: puerto `5432` (usuario/password `postgres`).
-4. Los Dockerfiles de `Firmeza.Api` y `Firmeza.Web` usan build multi-stage (`dotnet publish`) listos para ambientes productivos.
+   - Razor Web: `http://localhost:5100`
+   - PostgreSQL: `localhost:5432` (user/password `postgres`).
+4. Dockerfiles for both projects use multi-stage `dotnet publish`, suitable for production images.
 
-## Diagramas técnicos
-### Modelo Entidad-Relación
+## Technical Diagrams
+### Entity-Relationship Model
 ```mermaid
 erDiagram
-    Product ||--o{ SaleItem : contiene
-    Customer ||--o{ Sale : realiza
-    Sale ||--o{ SaleItem : agrupa
+    Product ||--o{ SaleItem : contains
+    Customer ||--o{ Sale : places
+    Sale ||--o{ SaleItem : aggregates
     Product {
         guid Id PK
         string Name
@@ -126,7 +126,7 @@ erDiagram
     }
 ```
 
-### Diagrama de clases/responsabilidades (API)
+### Class/Responsibility Diagram (API)
 ```mermaid
 classDiagram
     class ProductService {
@@ -162,7 +162,7 @@ classDiagram
     AuthController --> JwtTokenService
 ```
 
-## Próximos pasos sugeridos
-- Agregar migraciones de EF Core para versionar el esquema.
-- Crear más pruebas unitarias/e2e (por ejemplo para `SaleService` y `AuthController`).
-- Integrar observabilidad (Health Checks, logging estructurado) antes del despliegue productivo.
+## Next Steps
+- Add EF Core migrations to version-control the schema.
+- Expand unit/end-to-end tests (e.g., `SaleService`, `AuthController`).
+- Integrate observability (health checks, structured logging) before production rollout.
