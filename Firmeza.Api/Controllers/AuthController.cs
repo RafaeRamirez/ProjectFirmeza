@@ -14,27 +14,32 @@ namespace Firmeza.Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
+    private const string CustomerRole = "Customer";
     private readonly UserManager<AppUser> _userManager;
     private readonly SignInManager<AppUser> _signInManager;
     private readonly ITokenService _tokenService;
     private readonly CustomerService _customers;
+    private readonly RoleManager<IdentityRole> _roleManager;
 
     public AuthController(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
         ITokenService tokenService,
-        CustomerService customers)
+        CustomerService customers,
+        RoleManager<IdentityRole> roleManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _customers = customers;
+        _roleManager = roleManager;
     }
 
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponseDto>> Register(RegisterClientDto dto)
     {
+        await EnsureRoleExistsAsync(CustomerRole);
         var existing = await _userManager.FindByEmailAsync(dto.Email);
         if (existing is not null)
         {
@@ -55,7 +60,14 @@ public class AuthController : ControllerBase
             return BadRequest(errors);
         }
 
-        await _customers.CreateAsync(new CustomerCreateDto
+        var roleAssignment = await _userManager.AddToRoleAsync(user, CustomerRole);
+        if (!roleAssignment.Succeeded)
+        {
+            var errors = string.Join(";", roleAssignment.Errors.Select(e => e.Description));
+            return StatusCode(StatusCodes.Status500InternalServerError, $"No se pudo asignar el rol de cliente: {errors}");
+        }
+
+        var customer = await _customers.CreateAsync(new CustomerCreateDto
         {
             FullName = dto.FullName,
             Email = dto.Email,
@@ -63,7 +75,11 @@ public class AuthController : ControllerBase
         }, user.Id);
 
         var token = await _tokenService.CreateAsync(user);
-        return Ok(token);
+        return Ok(token with
+        {
+            CustomerId = customer.Id,
+            CustomerName = customer.FullName
+        });
     }
 
     [HttpPost("login")]
@@ -82,8 +98,13 @@ public class AuthController : ControllerBase
             return Unauthorized("Credenciales inválidas.");
         }
 
+        var customer = await _customers.GetByUserAsync(user.Id);
         var token = await _tokenService.CreateAsync(user);
-        return Ok(token);
+        return Ok(token with
+        {
+            CustomerId = customer?.Id,
+            CustomerName = customer?.FullName
+        });
     }
 
     [HttpGet("me")]
@@ -102,5 +123,13 @@ public class AuthController : ControllerBase
             Roles = await _userManager.GetRolesAsync(user),
             UserId = user.Id
         });
+}
+
+    private async Task EnsureRoleExistsAsync(string roleName)
+    {
+        if (!await _roleManager.RoleExistsAsync(roleName))
+        {
+            await _roleManager.CreateAsync(new IdentityRole(roleName));
+        }
     }
 }

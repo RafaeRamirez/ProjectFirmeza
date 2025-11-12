@@ -32,6 +32,13 @@ public class CustomerService
             .ProjectTo<CustomerDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
 
+    public Task<CustomerDto?> GetByUserAsync(string userId) =>
+        _db.Customers
+            .AsNoTracking()
+            .Where(c => c.CreatedByUserId == userId)
+            .ProjectTo<CustomerDto>(_mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync();
+
     public async Task<CustomerDto> CreateAsync(CustomerCreateDto dto, string userId)
     {
         var entity = _mapper.Map<Customer>(dto);

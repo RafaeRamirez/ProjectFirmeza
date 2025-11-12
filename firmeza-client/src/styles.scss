@@ -1,0 +1,131 @@
+@use 'sass:color';
+@import "bootstrap/scss/bootstrap";
+@import "bootstrap-icons/font/bootstrap-icons.css";
+
+:root {
+  --brand-primary: #2563eb;
+  --brand-secondary: #0f172a;
+  --brand-accent: #34d399;
+  --brand-violet: #7c3aed;
+  --text-light: #f8fafc;
+  --text-muted: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(37, 99, 235, 0.25), transparent 45%),
+    radial-gradient(circle at 20% 20%, rgba(52, 211, 153, 0.18), transparent 35%),
+    linear-gradient(145deg, #020617, #0f172a);
+  color: var(--text-light);
+  min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.glass-blur {
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.app-container {
+  max-width: 1200px;
+}
+
+.content-wrapper {
+  flex: 1;
+  padding: 3rem 0 4rem;
+}
+
+.glass-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 25px 65px rgba(2, 6, 23, 0.6);
+  padding: 2rem;
+}
+
+.glass-card-sm {
+  border-radius: 18px;
+  padding: 1.5rem;
+}
+
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.btn-primary,
+.btn-primary:focus,
+.btn-primary:disabled {
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(120deg, var(--brand-primary), var(--brand-violet));
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.45);
+  font-weight: 600;
+}
+
+.btn-outline-light {
+  border-radius: 999px;
+  color: var(--text-light);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.form-control,
+.form-select {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-light);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(52, 211, 153, 0.8);
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.text-muted-small {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.table,
+.card,
+.list-group-item {
+  background: rgba(15, 23, 42, 0.65);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-light);
+}
+
+.section-heading {
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: 700;
+}
+
+.app-footer {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 1.5rem 0 2.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}

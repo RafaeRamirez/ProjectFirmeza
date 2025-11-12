@@ -24,13 +24,30 @@ public static class DbSeeder
         var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
 
-        var requiredRoles = new[] { "SuperAdmin", "Admin" };
+        var requiredRoles = new[] { "SuperAdmin", "Admin", "Customer" };
         foreach (var role in requiredRoles)
         {
             if (!await roles.RoleExistsAsync(role))
             {
                 await roles.CreateAsync(new IdentityRole(role));
             }
+        }
+
+        foreach (var obsolete in new[] { "Cliente" })
+        {
+            var role = await roles.FindByNameAsync(obsolete);
+            if (role is null) continue;
+
+            var allUsers = await users.Users.ToListAsync();
+            foreach (var user in allUsers)
+            {
+                if (await users.IsInRoleAsync(user, obsolete))
+                {
+                    await users.RemoveFromRoleAsync(user, obsolete);
+                }
+            }
+
+            await roles.DeleteAsync(role);
         }
 
         var adminEmail = configuration["Seed:AdminEmail"] ?? "admin@firmeza.com";

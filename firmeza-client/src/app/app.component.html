@@ -1,0 +1,73 @@
+<div class="app-shell">
+  <header class="glass-blur main-nav">
+    <nav class="navbar navbar-expand-lg app-container py-3">
+      <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" routerLink="/">
+        <i class="bi bi-bricks text-primary fs-4"></i>
+        Firmeza Cliente
+      </a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#mainNav"
+        aria-controls="mainNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0" *ngIf="authState$ | async as session">
+          <li class="nav-item">
+            <a class="nav-link" aria-current="page" routerLink="/catalogo" routerLinkActive="active">Productos</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/carrito" routerLinkActive="active">Carrito</a>
+          </li>
+        </ul>
+        <div class="d-flex align-items-center gap-3">
+          <ng-container *ngIf="authState$ | async as session; else loggedOut">
+            <button class="btn btn-outline-light position-relative" (click)="navigateToCart()">
+              <i class="bi bi-cart3 me-1"></i>
+              Carrito
+              <span
+                class="badge bg-danger position-absolute top-0 start-100 translate-middle"
+                *ngIf="(cartItems$ | async) as cartCount"
+                [class.invisible]="cartCount === 0">
+                {{ cartCount }}
+              </span>
+            </button>
+            <div class="text-end me-2 session-chip">
+              <small class="d-block text-uppercase">Sesión activa</small>
+              <span class="fw-semibold text-light">{{ session.customerName ?? session.email }}</span>
+            </div>
+            <button class="btn btn-link text-danger text-decoration-none" (click)="logout()">
+              <i class="bi bi-box-arrow-right me-1"></i>
+              Cerrar sesión
+            </button>
+          </ng-container>
+          <ng-template #loggedOut>
+            <a routerLink="/login" class="btn btn-link text-decoration-none">Iniciar sesión</a>
+            <a routerLink="/registro" class="btn btn-primary">Crear cuenta</a>
+          </ng-template>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="content-wrapper">
+    <div class="app-container">
+      <div *ngIf="message$ | async as message" class="alert alert-dismissible fade show" [ngClass]="'alert-' + message.type">
+        {{ message.text }}
+        <button type="button" class="btn-close" (click)="closeMessage()" aria-label="Close"></button>
+      </div>
+    </div>
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="app-footer">
+    <div class="app-container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+      <span>© {{ currentYear }} Firmeza. Todos los derechos reservados.</span>
+      <span class="text-muted">Materiales y vehículos a un clic de distancia.</span>
+    </div>
+  </footer>
+</div>

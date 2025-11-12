@@ -1,0 +1,93 @@
+<section class="app-container cart-wrapper">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="glass-card glass-card-sm">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <p class="pill-badge mb-2">Carrito</p>
+            <h2 class="h4 mb-1 text-light">Tus productos seleccionados</h2>
+            <p class="text-muted mb-0">Ajusta cantidades antes de confirmar la compra.</p>
+          </div>
+          <i class="bi bi-cart-check display-6 text-primary"></i>
+        </div>
+
+        <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+        <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+
+        <ng-container *ngIf="(items$ | async) as items">
+          <div *ngIf="items.length === 0" class="text-center py-5">
+            <img src="https://illustrations.popsy.co/violet/shopping-bag.svg" class="empty-illustration" alt="Carrito vacío" />
+            <p class="text-muted mt-3">Tu carrito está vacío. Agrega productos desde el catálogo.</p>
+          </div>
+
+          <div class="list-group" *ngIf="items.length > 0">
+            <div class="list-group-item py-3 glass-row" *ngFor="let item of items">
+              <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                <div>
+                  <h5 class="mb-1">{{ item.product.name }}</h5>
+                  <p class="text-muted mb-1">
+                    Precio unitario:
+                    <span class="fw-semibold">{{ item.product.unitPrice | currency : 'USD' }}</span>
+                  </p>
+                  <p class="text-muted mb-0">Stock disponible: {{ item.product.stock }}</p>
+                </div>
+                <div class="text-end">
+                  <label class="form-label text-muted-small mb-1">Cantidad</label>
+                  <div class="input-group">
+                    <input
+                      type="number"
+                      class="form-control"
+                      min="1"
+                      [max]="item.product.stock"
+                      [value]="item.quantity"
+                      (change)="updateQuantity(item, $any($event.target).value)"
+                      (blur)="updateQuantity(item, $any($event.target).value)" />
+                    <button class="btn btn-outline-danger" (click)="remove(item)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                  <div class="fw-bold mt-2">
+                    {{ item.product.unitPrice * item.quantity | currency : 'USD' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="glass-card glass-card-sm sticky-top summary">
+        <h3 class="h5 mb-4 text-light">Resumen</h3>
+        <ng-container *ngIf="totals$ | async as totals">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Subtotal</span>
+            <span>{{ totals.subtotal | currency : 'USD' }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Impuestos ({{ taxRate * 100 | number : '1.0-0' }}%)</span>
+            <span>{{ totals.taxes | currency : 'USD' }}</span>
+          </div>
+          <div class="d-flex justify-content-between fw-bold fs-5 border-top pt-3">
+            <span>Total a pagar</span>
+            <span>{{ totals.total | currency : 'USD' }}</span>
+          </div>
+
+          <button class="btn btn-lg btn-primary w-100 mt-4" (click)="checkout()" [disabled]="checkoutLoading || totals.total === 0">
+            <span *ngIf="!checkoutLoading">
+              <i class="bi bi-check-circle me-2"></i>
+              Confirmar compra
+            </span>
+            <span *ngIf="checkoutLoading">
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Procesando...
+            </span>
+          </button>
+          <p class="text-muted-small mt-3">
+            Recibirás el comprobante en tu correo y podrás descargarlo desde el panel administrativo más adelante.
+          </p>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,11 +1,32 @@
 @model IEnumerable<Firmeza.Web.Models.Customer>
 @{ ViewData["Title"]="Clientes"; }
+
+@if (TempData["CustomersMessage"] is string ok && !string.IsNullOrWhiteSpace(ok))
+{
+    <div class="alert alert-success">@ok</div>
+}
+@if (TempData["CustomersError"] is string err && !string.IsNullOrWhiteSpace(err))
+{
+    <div class="alert alert-danger">@err</div>
+}
+@if (TempData["CustomersResetLink"] is string link && !string.IsNullOrWhiteSpace(link))
+{
+    <div class="alert alert-info">
+        Enlace de restablecimiento (solo visible en desarrollo):
+        <a href="@link">@link</a>
+    </div>
+}
+
 <div class="d-flex justify-content-between mb-3">
 <form method="get" class="d-flex gap-2"><input class="form-control" type="search" name="q" placeholder="Buscar..."/><button class="btn btn-outline-secondary">Buscar</button></form>
 <a class="btn btn-success" asp-action="Create">Crear</a>
 </div>
 <table class="table table-striped"><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th></th></tr></thead><tbody>
-@foreach(var c in Model){<tr><td>@c.FullName</td><td>@c.Email</td><td>@c.Phone</td><td class="text-end">
+@foreach(var c in Model){<tr><td>@c.FullName</td><td>@c.Email</td><td>@c.Phone</td><td class="text-end d-flex gap-2 justify-content-end flex-wrap">
+<form asp-action="SendPasswordReset" asp-route-id="@c.Id" method="post" class="d-inline">
+    @Html.AntiForgeryToken()
+    <button class="btn btn-sm btn-outline-warning" type="submit">Recuperar contraseña</button>
+</form>
 <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@c.Id">Editar</a>
 <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@c.Id">Eliminar</a>
 </td></tr>} </tbody></table>

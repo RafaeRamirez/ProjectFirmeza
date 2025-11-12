@@ -4,7 +4,6 @@ namespace Firmeza.Api.Contracts.Dtos.Sales;
 
 public class SaleCreateDto
 {
-    [Required]
     public Guid CustomerId { get; set; }
 
     [MinLength(1)]

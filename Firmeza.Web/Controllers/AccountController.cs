@@ -11,6 +11,7 @@ using Firmeza.Web.Interfaces;
 namespace Firmeza.Web.Controllers{
 [AllowAnonymous]
 public class AccountController:Controller{
+    private const string CustomerRole = "Customer";
     private readonly SignInManager<AppUser> _signIn; private readonly UserManager<AppUser> _users; private readonly IEmailSender _email; private readonly ILogger<AccountController> _logger; private readonly IHostEnvironment _env;
     public AccountController(SignInManager<AppUser> signIn, UserManager<AppUser> users, IEmailSender email, ILogger<AccountController> logger, IHostEnvironment env){ _signIn=signIn; _users=users; _email=email; _logger=logger; _env=env; }
     [HttpGet] public IActionResult Login(string? returnUrl=null){ ViewData["ReturnUrl"]=returnUrl; return View(new LoginViewModel()); }
@@ -30,6 +31,14 @@ public class AccountController:Controller{
         var user=new AppUser{ UserName=model.Email, Email=model.Email, EmailConfirmed=true };
         var res=await _users.CreateAsync(user, model.Password);
         if(res.Succeeded){
+            var roleResult = await _users.AddToRoleAsync(user, CustomerRole);
+            if(!roleResult.Succeeded)
+            {
+                foreach(var e in roleResult.Errors)
+                {
+                    _logger.LogWarning("No se pudo asignar el rol Customer al usuario {Email}: {Error}", user.Email, e.Description);
+                }
+            }
             return RedirectToAction(nameof(Login));
         }
         foreach(var e in res.Errors) ModelState.AddModelError(string.Empty, e.Description);

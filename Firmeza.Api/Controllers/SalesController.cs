@@ -11,10 +11,12 @@ namespace Firmeza.Api.Controllers;
 public class SalesController : ControllerBase
 {
     private readonly SaleService _service;
+    private readonly CustomerService _customers;
 
-    public SalesController(SaleService service)
+    public SalesController(SaleService service, CustomerService customers)
     {
         _service = service;
+        _customers = customers;
     }
 
     [HttpGet]
@@ -38,6 +40,12 @@ public class SalesController : ControllerBase
     public async Task<ActionResult<SaleDto>> Create(SaleCreateDto dto)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity?.Name ?? "system";
+        var customer = await _customers.GetByUserAsync(userId);
+        if (customer is null)
+        {
+            return BadRequest("El usuario no tiene un cliente asociado. Registra una cuenta para poder comprar.");
+        }
+        dto.CustomerId = customer.Id;
         try
         {
             var sale = await _service.CreateAsync(dto, userId, HttpContext.RequestAborted);

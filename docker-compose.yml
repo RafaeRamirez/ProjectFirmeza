@@ -45,5 +45,15 @@ services:
       - postgres
     ports:
       - "5100:8080"
+  firmeza.client:
+    build:
+      context: .
+      dockerfile: firmeza-client/Dockerfile
+      args:
+        NG_BUILD_CONFIGURATION: docker
+    depends_on:
+      - firmeza.api
+    ports:
+      - "4200:80"
 volumes:
   postgres_data:

@@ -1,0 +1,32 @@
+.main-nav {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  .navbar-brand {
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .nav-link {
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+
+    &.active,
+    &:hover {
+      color: var(--text-light);
+    }
+  }
+}
+
+.session-chip {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.btn-link {
+  color: var(--text-light);
+}
+
+footer {
+  margin-top: auto;
+}

@@ -14,9 +14,24 @@ namespace Firmeza.Web.Data
 
             var roles = sp.GetRequiredService<RoleManager<IdentityRole>>();
             var users = sp.GetRequiredService<UserManager<AppUser>>();
-            foreach (var r in new[] { "SuperAdmin", "Admin" })
+            foreach (var r in new[] { "SuperAdmin", "Admin", "Customer" })
                 if (!await roles.RoleExistsAsync(r))
                     await roles.CreateAsync(new IdentityRole(r));
+
+            foreach (var obsolete in new[] { "Cliente" })
+            {
+                var role = await roles.FindByNameAsync(obsolete);
+                if (role is null) continue;
+
+                var allUsers = await users.Users.ToListAsync();
+                foreach (var user in allUsers)
+                {
+                    if (await users.IsInRoleAsync(user, obsolete))
+                        await users.RemoveFromRoleAsync(user, obsolete);
+                }
+
+                await roles.DeleteAsync(role);
+            }
 
             var email = "admin@firmeza.com";
             var admin = await users.FindByEmailAsync(email);

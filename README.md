@@ -5,6 +5,7 @@ REST API plus Razor front-end to manage products, customers, and sales. This ite
 ## Architecture at a Glance
 - **Firmeza.Api**: ASP.NET Core 8, Entity Framework Core + PostgreSQL, Identity + JWT, AutoMapper, MailKit for SMTP.
 - **Firmeza.Web**: existing Razor module that reuses the same database.
+- **firmeza-client**: Angular 18 SPA for customers (registration, login, catalog, cart, checkout + JWT handling).
 - **Firmeza.Tests**: xUnit project with unit tests over core services.
 - **Infrastructure**: ready-to-use Dockerfiles and `docker-compose.yml` to spin up PostgreSQL + API + Web.
 
@@ -70,6 +71,35 @@ dotnet run --project Firmeza.Web
 - Swap SMTP servers by changing `Email__*` values—no code changes required.
 - When a sale is created, a confirmation email is sent if the customer has an email address.
 
+## Client SPA (firmeza-client)
+### Highlights
+- Angular 18 + Bootstrap 5 SPA that runs independently from the .NET projects.
+- Auth flow powered by the API: register/login with JWT storage, guard, and interceptor that auto-injects the `Authorization` header and invalidates expired tokens.
+- Product catalog with live filters, availability badges, and an add-to-cart workflow.
+- Persistent shopping cart (LocalStorage) that recalculates subtotal, tax (16%), and totals in real time; quantities are capped by stock.
+- Checkout view posts the sale to `/api/sales`, clears the cart, and calls out the confirmation email sent by the API.
+- Global layout displays the authenticated customer, navigation shortcuts, notification center, and sign-out action.
+
+### Local Run
+```bash
+cd firmeza-client
+npm install
+npm start
+# App available at http://localhost:4200 (expects the API on http://localhost:5053)
+```
+
+### Environment / Configuration
+- `src/environments/environment.development.ts`: default local setup (API on `http://localhost:5053/api`).
+- `src/environments/environment.ts`: production defaults (same base URL; override via build configs).
+- `src/environments/environment.docker.ts`: used by `ng build --configuration docker` so the container talks to `http://firmeza.api:8080/api`.
+
+### Client Tests
+- Sample Jasmine test (`CartService`) validates subtotal/tax/total calculations. Run all Angular tests with:
+```bash
+cd firmeza-client
+npm test
+```
+
 ## Automated Tests (xUnit)
 - Project: `Firmeza.Tests`.
 - Contains a sample `ProductService` test validating the “only available” filter using EF Core InMemory.
@@ -87,6 +117,7 @@ docker compose up --build
 3. Exposed services:
    - API: `http://localhost:5000`
    - Razor Web: `http://localhost:5100`
+   - Client SPA: `http://localhost:4200`
    - PostgreSQL: `localhost:5432` (user/password `postgres`).
 4. Dockerfiles for both projects use multi-stage `dotnet publish`, suitable for production images.
 
