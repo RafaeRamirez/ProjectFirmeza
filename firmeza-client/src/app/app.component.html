@@ -23,8 +23,11 @@
           <li class="nav-item">
             <a class="nav-link" routerLink="/carrito" routerLinkActive="active">Carrito</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/notificaciones" routerLinkActive="active">Notificaciones</a>
+          </li>
         </ul>
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap justify-content-end justify-content-lg-start">
           <ng-container *ngIf="authState$ | async as session; else loggedOut">
             <button class="btn btn-outline-light position-relative" (click)="navigateToCart()">
               <i class="bi bi-cart3 me-1"></i>

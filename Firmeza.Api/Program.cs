@@ -93,6 +93,7 @@ builder.Services.AddAutoMapper(typeof(DomainProfile).Assembly);
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<SaleService>();
+builder.Services.AddScoped<ProductRequestService>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 
 if (string.IsNullOrWhiteSpace(builder.Configuration["Email:Host"]))

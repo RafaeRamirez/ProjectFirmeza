@@ -30,3 +30,36 @@
 footer {
   margin-top: auto;
 }
+
+@media (max-width: 991.98px) {
+  .main-nav .navbar-nav {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 1rem;
+    margin-top: 1rem;
+  }
+
+  .session-chip {
+    text-align: right;
+  }
+
+  .app-shell header .btn-outline-light {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .app-shell header .btn-outline-light {
+    order: 2;
+    margin-top: 0.5rem;
+  }
+
+  .session-chip {
+    width: 100%;
+    text-align: left;
+  }
+
+  .navbar-brand {
+    font-size: 1rem;
+  }
+}

@@ -38,7 +38,9 @@ body {
 }
 
 .app-container {
-  max-width: 1200px;
+  width: min(100%, 1200px);
+  margin: 0 auto;
+  padding: 0 1.5rem;
 }
 
 .content-wrapper {
@@ -128,4 +130,52 @@ body {
   font-size: 0.9rem;
   padding: 1.5rem 0 2.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 991.98px) {
+  .content-wrapper {
+    padding: 2.5rem 0 3rem;
+  }
+
+  .glass-card {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .app-container {
+    padding: 0 1.25rem;
+  }
+
+  .glass-card,
+  .glass-card-sm {
+    border-radius: 16px;
+  }
+
+  .pill-badge {
+    font-size: 0.75rem;
+  }
+
+  .glass-card {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  body {
+    font-size: 0.95rem;
+  }
+
+  .app-container {
+    padding: 0 1rem;
+  }
+
+  .content-wrapper {
+    padding: 2rem 0 2.5rem;
+  }
+
+  .app-footer {
+    text-align: center;
+    padding-bottom: 1.5rem;
+  }
 }

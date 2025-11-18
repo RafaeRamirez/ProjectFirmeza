@@ -51,20 +51,33 @@ export class CartComponent {
     this.errorMessage = '';
     this.successMessage = '';
     this.checkoutLoading = true;
-    this.sales.createSale(snapshot).subscribe({
-      next: (sale) => {
+    this.sales.requestApproval(snapshot).subscribe({
+      next: (result) => {
+        const created = result.requests ?? [];
+        const errors = result.errors ?? [];
         this.checkoutLoading = false;
-        this.cart.clear();
-        this.successMessage = `Compra registrada (#${sale.id.slice(0, 8)}). Revisa tu correo para ver el comprobante.`;
-        this.notifications.show({
-          type: 'success',
-          text: '¡Gracias por tu compra! El comprobante se envió por correo.'
-        });
+        if (created.length > 0) {
+          created.forEach((req) => this.cart.remove(req.productId));
+          this.successMessage = `Solicitud enviada. ${created.length} producto(s) quedan pendientes de aprobación del administrador.`;
+          this.notifications.show({
+            type: 'info',
+            text: 'Tu compra fue enviada al administrador. Recibirás una notificación cuando se apruebe.'
+          });
+        } else {
+          this.successMessage = '';
+        }
+
+        if (errors.length > 0) {
+          const missing = errors.map((e) => e.message).join(' ');
+          this.errorMessage = `Algunos productos no pudieron solicitarse: ${missing}`;
+        } else {
+          this.errorMessage = '';
+        }
       },
       error: (error) => {
         this.checkoutLoading = false;
         this.errorMessage =
-          typeof error?.error === 'string' ? error.error : error?.message ?? 'No se pudo completar la compra.';
+          typeof error?.error === 'string' ? error.error : error?.message ?? 'No se pudo registrar la solicitud.';
       }
     });
   }

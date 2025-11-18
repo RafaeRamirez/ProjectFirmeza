@@ -20,6 +20,8 @@ public static class DbSeeder
             await db.Database.EnsureCreatedAsync();
         }
 
+        await EnsureProductRequestSchemaAsync(db);
+
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
         var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
@@ -79,5 +81,36 @@ public static class DbSeeder
         {
             await users.AddToRoleAsync(user, role);
         }
+    }
+
+    private static async Task EnsureProductRequestSchemaAsync(AppDbContext db)
+    {
+        const string productRequestsSql = """
+CREATE TABLE IF NOT EXISTS "ProductRequests"
+(
+    "Id" uuid PRIMARY KEY,
+    "ProductId" uuid NOT NULL,
+    "Quantity" integer NOT NULL,
+    "Note" text NULL,
+    "RequestedByUserId" text NOT NULL,
+    "RequestedByEmail" text NOT NULL,
+    "RequestedAt" timestamp without time zone NOT NULL DEFAULT NOW(),
+    "Status" text NOT NULL DEFAULT 'Pending',
+    "ResponseMessage" text NULL,
+    "ProcessedAt" timestamp without time zone NULL,
+    "ProcessedByUserId" text NULL,
+    "SaleId" uuid NULL
+);
+""";
+
+        const string productRequestsColumnsSql = """
+ALTER TABLE "ProductRequests" ADD COLUMN IF NOT EXISTS "ResponseMessage" text NULL;
+ALTER TABLE "ProductRequests" ADD COLUMN IF NOT EXISTS "ProcessedAt" timestamp without time zone NULL;
+ALTER TABLE "ProductRequests" ADD COLUMN IF NOT EXISTS "ProcessedByUserId" text NULL;
+ALTER TABLE "ProductRequests" ADD COLUMN IF NOT EXISTS "SaleId" uuid NULL;
+""";
+
+        await db.Database.ExecuteSqlRawAsync(productRequestsSql);
+        await db.Database.ExecuteSqlRawAsync(productRequestsColumnsSql);
     }
 }

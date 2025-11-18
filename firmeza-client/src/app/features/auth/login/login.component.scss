@@ -5,3 +5,13 @@
 .glass-card {
   border-radius: 24px;
 }
+
+.forgot-link {
+  color: #579dff;
+  font-weight: 600;
+  font-size: 0.95rem;
+
+  &:hover {
+    color: var(--brand-primary);
+  }
+}

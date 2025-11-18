@@ -1,6 +1,6 @@
 <section class="app-container cart-wrapper">
   <div class="row g-4">
-    <div class="col-lg-8">
+    <div class="col-12 col-lg-8 order-2 order-lg-1">
       <div class="glass-card glass-card-sm">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div>
@@ -56,7 +56,7 @@
         </ng-container>
       </div>
     </div>
-    <div class="col-lg-4">
+    <div class="col-12 col-lg-4 order-1 order-lg-2">
       <div class="glass-card glass-card-sm sticky-top summary">
         <h3 class="h5 mb-4 text-light">Resumen</h3>
         <ng-container *ngIf="totals$ | async as totals">

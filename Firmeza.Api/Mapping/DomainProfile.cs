@@ -1,5 +1,6 @@
 using AutoMapper;
 using Firmeza.Api.Contracts.Dtos.Customers;
+using Firmeza.Api.Contracts.Dtos.ProductRequests;
 using Firmeza.Api.Contracts.Dtos.Products;
 using Firmeza.Api.Contracts.Dtos.Sales;
 using Firmeza.Api.Domain.Entities;
@@ -22,5 +23,8 @@ public class DomainProfile : Profile
             .ForCtorParam(nameof(SaleItemDto.ProductName), opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : string.Empty));
 
         CreateMap<Sale, SaleDto>();
+
+        CreateMap<ProductRequest, ProductRequestDto>()
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : string.Empty));
     }
 }

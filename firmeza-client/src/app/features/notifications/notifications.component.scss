@@ -1,0 +1,52 @@
+.notifications-view {
+  padding: 3rem 1rem;
+
+  header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 1.5rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+
+    i {
+      font-size: 2.5rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+  }
+
+  .list-group-item {
+    background-color: rgba(21, 25, 36, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    padding: 1.5rem;
+
+    &:hover {
+      background-color: rgba(21, 25, 36, 0.8);
+    }
+  }
+}
+
+@media (max-width: 767.98px) {
+  .notifications-view {
+    padding: 2rem 0.5rem;
+
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+
+      button {
+        width: 100%;
+      }
+    }
+
+    .list-group-item {
+      padding: 1rem;
+    }
+  }
+}

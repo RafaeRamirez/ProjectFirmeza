@@ -1,0 +1,59 @@
+<section class="app-container notifications-view">
+  <header class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+      <p class="text-muted mb-1">Centro de notificaciones</p>
+      <h1 class="h4 mb-0">Estado de tus compras</h1>
+    </div>
+    <button class="btn btn-outline-primary" type="button" (click)="refresh()" [disabled]="loading">
+      <i class="bi bi-arrow-clockwise me-2"></i>
+      Actualizar
+    </button>
+  </header>
+
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <div *ngIf="loading" class="text-center text-muted my-5">
+    <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+    Cargando notificaciones...
+  </div>
+
+  <div *ngIf="!loading && !error && notifications.length === 0" class="empty-state">
+    <i class="bi bi-bell-slash mb-3"></i>
+    <p class="fw-semibold mb-1">No tienes novedades aún</p>
+    <p class="text-muted mb-0">Cuando un administrador revise tus compras verás el resultado aquí.</p>
+  </div>
+
+  <div class="list-group" *ngIf="!loading && notifications.length > 0">
+    <article
+      class="list-group-item list-group-item-action flex-column align-items-start"
+      *ngFor="let item of notifications; trackBy: trackById">
+      <div class="d-flex w-100 justify-content-between">
+        <div>
+          <h2 class="h6 mb-1">{{ item.productName }}</h2>
+          <p class="text-muted mb-1">
+            Cantidad: <strong>{{ item.quantity }}</strong>
+            <span class="ms-3">Solicitado: {{ item.requestedAt | date: 'medium' }}</span>
+          </p>
+          <p class="mb-1" *ngIf="item.note">Nota enviada: {{ item.note }}</p>
+          <p class="mb-1" *ngIf="item.responseMessage">
+            Respuesta del administrador: <em>{{ item.responseMessage }}</em>
+          </p>
+          <p class="text-muted mb-1" *ngIf="item.processedAt">
+            Procesado el {{ item.processedAt | date: 'medium' }}
+          </p>
+          <p class="fw-semibold text-success mb-0" *ngIf="item.status === 'Approved' && item.saleId">
+            Compra confirmada. Código {{ item.saleId.slice(0, 8) }}
+          </p>
+          <p class="fw-semibold text-danger mb-0" *ngIf="item.status === 'Rejected' && !item.responseMessage">
+            Compra rechazada por el administrador.
+          </p>
+        </div>
+        <span class="badge rounded-pill align-self-start" [ngClass]="badgeClass(item.status)">
+          {{ statusLabel(item.status) }}
+        </span>
+      </div>
+    </article>
+  </div>
+</section>

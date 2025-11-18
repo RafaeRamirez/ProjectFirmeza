@@ -3,7 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponseDto, AuthSession, LoginRequest, RegisterRequest } from '../models/auth.models';
+import {
+  AuthResponseDto,
+  AuthSession,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
+  LoginRequest,
+  RegisterRequest,
+  ResetPasswordRequest
+} from '../models/auth.models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -25,6 +33,14 @@ export class AuthService {
     return this.http
       .post<AuthResponseDto>(`${environment.apiBaseUrl}/auth/register`, request)
       .pipe(tap((response) => this.persistSession(response)));
+  }
+
+  forgotPassword(request: ForgotPasswordRequest): Observable<ForgotPasswordResponse> {
+    return this.http.post<ForgotPasswordResponse>(`${environment.apiBaseUrl}/auth/forgot-password`, request);
+  }
+
+  resetPassword(request: ResetPasswordRequest): Observable<void> {
+    return this.http.post<void>(`${environment.apiBaseUrl}/auth/reset-password`, request);
   }
 
   logout(): void {
