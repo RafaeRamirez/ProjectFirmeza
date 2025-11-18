@@ -16,6 +16,7 @@ public class CustomerRepository:ICustomerRepository{
         return await q.OrderBy(c=>c.FullName).ToListAsync();
     }
     public Task<Customer?> GetAsync(Guid id, string? ownerId=null)=>_db.Customers.FirstOrDefaultAsync(c=>c.Id==id && (ownerId==null || c.CreatedByUserId==ownerId));
+    public Task<Customer?> GetByEmailAsync(string email, string? ownerId=null)=>_db.Customers.FirstOrDefaultAsync(c=>c.Email==email && (ownerId==null || c.CreatedByUserId==ownerId));
     public async Task CreateAsync(Customer c){_db.Customers.Add(c); await _db.SaveChangesAsync();}
     public async Task UpdateAsync(Customer c, string? ownerId=null){
         var existing=await _db.Customers.FirstOrDefaultAsync(x=>x.Id==c.Id && (ownerId==null || x.CreatedByUserId==ownerId));

@@ -86,5 +86,66 @@ namespace Firmeza.Web.Services
             }
             return pkg.GetAsByteArrayAsync();
         }
+
+        public Task<byte[]> ExportCustomersAsync(IEnumerable<Customer> customers)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using var pkg = new ExcelPackage();
+            var ws = pkg.Workbook.Worksheets.Add("Clientes");
+            ws.Cells[1, 1].Value = "Nombre";
+            ws.Cells[1, 2].Value = "Correo";
+            ws.Cells[1, 3].Value = "Teléfono";
+            int row = 2;
+            foreach (var customer in customers)
+            {
+                ws.Cells[row, 1].Value = customer.FullName;
+                ws.Cells[row, 2].Value = customer.Email;
+                ws.Cells[row, 3].Value = customer.Phone;
+                row++;
+            }
+            return pkg.GetAsByteArrayAsync();
+        }
+
+        public Task<(List<Customer> ok, List<string> errors)> ImportCustomersAsync(System.IO.Stream stream)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var ok = new List<Customer>();
+            var errors = new List<string>();
+            using var pkg = new ExcelPackage(stream);
+            var ws = pkg.Workbook.Worksheets.FirstOrDefault();
+            if (ws == null)
+            {
+                errors.Add("El archivo no contiene hojas.");
+                return Task.FromResult((ok, errors));
+            }
+
+            var totalRows = ws.Dimension?.Rows ?? 0;
+            for (int row = 2; row <= totalRows; row++)
+            {
+                var name = ws.Cells[row, 1].GetValue<string>()?.Trim();
+                var email = ws.Cells[row, 2].GetValue<string>()?.Trim();
+                var phone = ws.Cells[row, 3].GetValue<string>()?.Trim();
+
+                if (string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(phone))
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    errors.Add($"Fila {row}: el nombre es obligatorio.");
+                    continue;
+                }
+
+                ok.Add(new Customer
+                {
+                    FullName = name!,
+                    Email = email,
+                    Phone = phone
+                });
+            }
+
+            return Task.FromResult((ok, errors));
+        }
     }
 }

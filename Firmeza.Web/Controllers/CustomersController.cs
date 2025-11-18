@@ -1,9 +1,11 @@
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using Firmeza.Web.Interfaces;
 using Firmeza.Web.Models;
 using Firmeza.Web.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
@@ -20,19 +22,22 @@ public class CustomersController : Controller
     private readonly IEmailSender _email;
     private readonly ILogger<CustomersController> _logger;
     private readonly IHostEnvironment _env;
+    private readonly IExcelService _excel;
 
     public CustomersController(
         CustomerService svc,
         UserManager<AppUser> users,
         IEmailSender email,
         ILogger<CustomersController> logger,
-        IHostEnvironment env)
+        IHostEnvironment env,
+        IExcelService excel)
     {
         _svc = svc;
         _users = users;
         _email = email;
         _logger = logger;
         _env = env;
+        _excel = excel;
     }
 
     private string? CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -42,6 +47,75 @@ public class CustomersController : Controller
         var userId = CurrentUserId;
         if (userId == null) return Forbid();
         return View(await _svc.ListAsync(q, userId));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Export()
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Forbid();
+        var customers = await _svc.ListAsync(ownerId: userId);
+        var bytes = await _excel.ExportCustomersAsync(customers);
+        var fileName = $"clientes-{DateTime.UtcNow:yyyyMMddHHmm}.xlsx";
+        return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Import(IFormFile? file)
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Forbid();
+
+        if (file == null || file.Length == 0)
+        {
+            TempData["CustomersError"] = "Selecciona un archivo de Excel válido.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        try
+        {
+            using var stream = file.OpenReadStream();
+            var (rows, errors) = await _excel.ImportCustomersAsync(stream);
+            var created = 0;
+            var updated = 0;
+
+            foreach (var row in rows)
+            {
+                row.CreatedByUserId = userId;
+                if (!string.IsNullOrWhiteSpace(row.Email))
+                {
+                    var existing = await _svc.FindByEmailAsync(row.Email, userId);
+                    if (existing != null)
+                    {
+                        existing.FullName = row.FullName;
+                        existing.Phone = row.Phone;
+                        await _svc.UpdateAsync(existing, userId);
+                        updated++;
+                        continue;
+                    }
+                }
+
+                await _svc.CreateAsync(row);
+                created++;
+            }
+
+            if (created > 0 || updated > 0)
+            {
+                TempData["CustomersMessage"] = $"Importación completada: {created} nuevos y {updated} actualizados.";
+            }
+            if (errors.Any())
+            {
+                TempData["CustomersError"] = string.Join(" ", errors);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "No se pudo importar el archivo de clientes.");
+            TempData["CustomersError"] = "No se pudo procesar el archivo. Verifica el formato.";
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 
     public IActionResult Create() => View(new Customer());

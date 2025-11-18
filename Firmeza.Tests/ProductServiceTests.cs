@@ -42,4 +42,31 @@ public class ProductServiceTests
         Assert.Single(result.Items);
         Assert.Equal("Activo", result.Items[0].Name);
     }
+
+    [Fact]
+    public async Task CreateAsync_TrimsNameAndPersistsNewProduct()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        await using var context = new AppDbContext(options);
+        var service = new ProductService(context, _mapper);
+        var dto = new ProductCreateDto
+        {
+            Name = "  Producto nuevo  ",
+            UnitPrice = 99.50m,
+            Stock = 10,
+            IsActive = true
+        };
+
+        var result = await service.CreateAsync(dto, "user-1");
+
+        var stored = await context.Products.FirstOrDefaultAsync(p => p.Id == result.Id);
+        Assert.NotNull(stored);
+        Assert.Equal("Producto nuevo", stored!.Name);
+        Assert.Equal("user-1", stored.CreatedByUserId);
+        Assert.Equal(dto.UnitPrice, stored.UnitPrice);
+        Assert.Equal(dto.Stock, stored.Stock);
+    }
 }

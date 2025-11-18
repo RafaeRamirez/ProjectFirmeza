@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Firmeza.Api.Contracts.Dtos.Customers;
 using Firmeza.Api.Contracts.Dtos.Sales;
 using Firmeza.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -10,6 +11,7 @@ namespace Firmeza.Api.Controllers;
 [Route("api/[controller]")]
 public class SalesController : ControllerBase
 {
+    private const string CustomerRole = "Customer";
     private readonly SaleService _service;
     private readonly CustomerService _customers;
 
@@ -40,12 +42,20 @@ public class SalesController : ControllerBase
     public async Task<ActionResult<SaleDto>> Create(SaleCreateDto dto)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity?.Name ?? "system";
-        var customer = await _customers.GetByUserAsync(userId);
-        if (customer is null)
+        if (User.IsInRole(CustomerRole))
         {
-            return BadRequest("El usuario no tiene un cliente asociado. Registra una cuenta para poder comprar.");
+            var customer = await _customers.GetByUserAsync(userId) ?? await CreateCustomerForUserAsync(userId);
+            if (customer is null)
+            {
+                return BadRequest("No fue posible crear un registro de cliente para este usuario.");
+            }
+            dto.CustomerId = customer.Id;
         }
-        dto.CustomerId = customer.Id;
+        else if (dto.CustomerId == Guid.Empty)
+        {
+            return BadRequest("Debes indicar el cliente para registrar la venta.");
+        }
+
         try
         {
             var sale = await _service.CreateAsync(dto, userId, HttpContext.RequestAborted);
@@ -59,5 +69,30 @@ public class SalesController : ControllerBase
         {
             return Conflict(ex.Message);
         }
+    }
+
+    private async Task<CustomerDto?> CreateCustomerForUserAsync(string userId)
+    {
+        var name = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name;
+        var email = User.FindFirstValue(ClaimTypes.Email);
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            name = email;
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            var suffix = userId.Length > 8 ? userId.Substring(0, 8) : userId;
+            name = $"Cliente {suffix}";
+        }
+
+        var dto = new CustomerCreateDto
+        {
+            FullName = name!,
+            Email = email
+        };
+
+        return await _customers.CreateAsync(dto, userId);
     }
 }

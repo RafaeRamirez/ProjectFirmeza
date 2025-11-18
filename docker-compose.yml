@@ -1,5 +1,13 @@
 version: "3.9"
+
 services:
+  tests:
+    build:
+      context: .
+      dockerfile: Firmeza.Tests/Dockerfile
+    # the container exits after running the xUnit suite;
+    # dependents won't start if this step fails
+
   postgres:
     image: postgres:16
     restart: unless-stopped
@@ -11,6 +19,15 @@ services:
       POSTGRES_DB: FirmezaDb
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      tests:
+        condition: service_completed_successfully
+
   firmeza.api:
     build:
       context: .
@@ -30,9 +47,13 @@ services:
       Email__RequireAuthentication: "true"
       Email__EnableSsl: "true"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      tests:
+        condition: service_completed_successfully
     ports:
       - "5000:8080"
+
   firmeza.web:
     build:
       context: .
@@ -42,9 +63,13 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__Default: Host=postgres;Port=5432;Database=FirmezaDb;Username=postgres;Password=postgres;Ssl Mode=Prefer
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      tests:
+        condition: service_completed_successfully
     ports:
       - "5100:8080"
+
   firmeza.client:
     build:
       context: .
@@ -52,8 +77,12 @@ services:
       args:
         NG_BUILD_CONFIGURATION: docker
     depends_on:
-      - firmeza.api
+      firmeza.api:
+        condition: service_started
+      tests:
+        condition: service_completed_successfully
     ports:
       - "4200:80"
+
 volumes:
   postgres_data:
