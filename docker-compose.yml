@@ -72,8 +72,8 @@ services:
 
   firmeza.client:
     build:
-      context: .
-      dockerfile: firmeza-client/Dockerfile
+      context: ./firmeza-client
+      dockerfile: Dockerfile
       args:
         NG_BUILD_CONFIGURATION: docker
     depends_on:

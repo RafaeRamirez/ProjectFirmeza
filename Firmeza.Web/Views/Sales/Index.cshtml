@@ -156,7 +156,7 @@
 <table class="table table-striped"><thead><tr><th>Fecha</th><th>Cliente</th><th>Total</th><th class="text-end">Acciones</th></tr></thead><tbody>
 @foreach(var s in Model){
     <tr>
-        <td>@s.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+        <td>@s.CreatedAt.ToLocalFromUtc().ToString("yyyy-MM-dd HH:mm")</td>
         <td>@s.Customer?.FullName</td>
         <td>@s.Total.ToString("0.00")</td>
         <td class="text-end">

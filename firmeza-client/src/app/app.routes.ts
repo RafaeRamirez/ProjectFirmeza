@@ -7,6 +7,7 @@ import { NotificationsComponent } from './features/notifications/notifications.c
 import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component';
 import { authGuard } from './core/guards/auth.guard';
+import { ProfileComponent } from './features/profile/profile.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -16,6 +17,7 @@ export const routes: Routes = [
   { path: 'catalogo', component: CatalogComponent, canActivate: [authGuard] },
   { path: 'carrito', component: CartComponent, canActivate: [authGuard] },
   { path: 'notificaciones', component: NotificationsComponent, canActivate: [authGuard] },
+  { path: 'perfil', component: ProfileComponent, canActivate: [authGuard] },
   { path: '', pathMatch: 'full', redirectTo: 'catalogo' },
   { path: '**', redirectTo: 'catalogo' }
 ];

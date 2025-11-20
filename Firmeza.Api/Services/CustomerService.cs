@@ -43,6 +43,8 @@ public class CustomerService
     {
         var entity = _mapper.Map<Customer>(dto);
         entity.FullName = dto.FullName.Trim();
+        entity.Email = dto.Email?.Trim().ToLowerInvariant();
+        entity.Phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim();
         entity.CreatedByUserId = userId;
 
         _db.Customers.Add(entity);
@@ -59,10 +61,39 @@ public class CustomerService
         }
 
         entity.FullName = dto.FullName.Trim();
-        entity.Email = dto.Email;
-        entity.Phone = dto.Phone;
+        entity.Email = dto.Email?.Trim().ToLowerInvariant();
+        entity.Phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim();
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<int> UpdateAllByEmailAsync(string email, string fullName, string? phone)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return 0;
+        }
+
+        var normalized = email.Trim().ToLowerInvariant();
+        var targets = await _db.Customers
+            .Where(c => c.Email != null && c.Email.ToLower() == normalized)
+            .ToListAsync();
+
+        if (!targets.Any())
+        {
+            return 0;
+        }
+
+        var cleanName = fullName.Trim();
+        var cleanPhone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
+        foreach (var entry in targets)
+        {
+            entry.FullName = cleanName;
+            entry.Phone = cleanPhone;
+            entry.Email = entry.Email?.Trim();
+        }
+        await _db.SaveChangesAsync();
+        return targets.Count;
     }
 
     public async Task<CustomerDeleteResultDto> DeleteAsync(Guid id)

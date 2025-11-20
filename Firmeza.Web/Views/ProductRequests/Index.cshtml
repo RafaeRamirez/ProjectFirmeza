@@ -40,12 +40,12 @@ else
             {
                 <tr>
                     <td>@r.Product?.Name</td>
-                    <td>@r.RequestedByEmail</td>
+                    <td>@(r.RequestedByName ?? r.RequestedByEmail ?? "-")</td>
                     <td>@r.Quantity</td>
                     <td>
                         <span class="badge @(r.Status == "Approved" ? "bg-success" : r.Status == "Rejected" ? "bg-danger" : "bg-warning text-dark")">@r.Status</span>
                     </td>
-                    <td>@r.RequestedAt.ToLocalTime().ToString("g")</td>
+                    <td>@r.RequestedAt.ToLocalFromUtc().ToString("g")</td>
                     <td class="text-end">
                         @if (r.Status == "Pending")
                         {

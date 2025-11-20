@@ -115,4 +115,18 @@ export class AuthService {
     localStorage.removeItem(this.storageKey);
     this.authStateSubject.next(null);
   }
+
+  updateProfileSession(data: { fullName: string; email: string }): void {
+    const current = this.authStateSubject.value;
+    if (!current) {
+      return;
+    }
+    const updated: AuthSession = {
+      ...current,
+      email: data.email,
+      customerName: data.fullName
+    };
+    localStorage.setItem(this.storageKey, JSON.stringify(updated));
+    this.authStateSubject.next(updated);
+  }
 }

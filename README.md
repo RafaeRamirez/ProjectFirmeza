@@ -1,128 +1,100 @@
 # ProjectFirmeza
 
-REST API plus Razor front-end to manage products, customers, and sales. This iteration introduces the Firmeza.Api layer so other modules (Blazor, mobile apps) can consume the same PostgreSQL database and share business logic.
+End-to-end solution to manage products, customers, and sales with a shared PostgreSQL database, a secure REST API, an admin Razor portal, and an Angular SPA for customers.
 
-## Architecture at a Glance
-- **Firmeza.Api**: ASP.NET Core 8, Entity Framework Core + PostgreSQL, Identity + JWT, AutoMapper, MailKit for SMTP.
-- **Firmeza.Web**: existing Razor module that reuses the same database.
-- **firmeza-client**: Angular 18 SPA for customers (registration, login, catalog, cart, checkout + JWT handling).
-- **Firmeza.Tests**: xUnit project with unit tests over core services.
-- **Infrastructure**: ready-to-use Dockerfiles and `docker-compose.yml` to spin up PostgreSQL + API + Web.
-
-## Core API (Firmeza.Api)
-### Highlights
-- Full CRUD for products with filters (search, availability, price range, sorting).
-- Customer CRUD with validations to avoid deleting records that still have sales.
-- Sales management updates stock automatically and can send confirmation emails (Gmail SMTP by default).
-- Identity + JWT with `SuperAdmin` and `Admin` roles. End users self-register via `/api/auth/register` and get a token immediately (no extra role required).
-- AutoMapper + DTOs expose only the data needed by clients.
-- Swagger + JWT: UI secured with “Authorize” button to test protected endpoints.
-
-### Key Endpoints
-| Resource | Method | Route | Notes |
-| --- | --- | --- | --- |
-| Auth | POST | `/api/auth/register` | Creates the user + customer entry and issues a token.
-| Auth | POST | `/api/auth/login` | Returns a JWT token.
-| Auth | GET | `/api/auth/me` | User info based on the current token.
-| Products | GET | `/api/products` | Paged list with filters; requires authentication only.
-| Products | POST/PUT/DELETE | `/api/products/{id}` | Restricted to the `RequireAdmin` policy.
-| Customers | CRUD | `/api/customers` | Admin-only area.
-| Sales | POST | `/api/sales` | Any authenticated user can create a sale; stock is updated and email can be sent.
-| Sales | GET | `/api/sales` | Historical report for administrators.
-
-### Authentication and Roles
-1. Register: `POST /api/auth/register` → immediate token.
-2. Login: `POST /api/auth/login` → token + expiration (configured under `Jwt:ExpirationMinutes`).
-3. Call endpoints using `Authorization: Bearer {token}`.
-4. Policies:
-   - `RequireAdmin`: user must be `Admin` or `SuperAdmin`.
-   - Some endpoints (e.g., `GET /api/products`, `POST /api/sales`) only need the user to be authenticated.
-
-### Configuration (env/appsettings)
-| Key | Description |
+## Solution Layout
+| Project | Description |
 | --- | --- |
-| `ConnectionStrings__Default` | Full PostgreSQL connection string (shared with Razor app).
-| `Jwt__Issuer`, `Jwt__Audience`, `Jwt__SigningKey`, `Jwt__ExpirationMinutes` | JWT parameters.
-| `Email__*` | SMTP settings (defaults to Gmail). Replace host/credentials for corporate SMTP.
-| `Seed__AdminEmail`, `Seed__AdminPassword` | Initial admin credentials.
+| `Firmeza.Api` | ASP.NET Core 8 Web API (JWT + Identity + EF Core + PostgreSQL + MailKit) used by all clients. |
+| `Firmeza.Web` | Razor admin portal reusing the same DbContext for dashboards, catalogs, and approvals. |
+| `firmeza-client` | Angular 18 customer portal (catalog, cart, checkout, notifications, profile). |
+| `Firmeza.Tests` | xUnit tests that validate service logic (EF Core InMemory). |
 
-`appsettings.json` holds reference values; `appsettings.Development.json` overrides the local connection string.
+Dockerfiles plus `docker-compose.yml` spin up PostgreSQL, API, admin site, and SPA with one command.
 
-### Local Run (CLI)
+## Firmeza.Api (REST)
+### Capabilities
+- CRUD for products/customers with filters, pagination, and soft validations (no delete when sales exist).
+- Sales workflow updates stock, records who created the sale, and triggers confirmation emails.
+- Auth stack: Identity + JWT, `SuperAdmin`/`Admin` policies, and customer self-registration.
+- Product requests created by the SPA can be approved in the admin portal; approval creates a sale, updates stock, and now emails the customer a PDF receipt generated on the fly.
+- Swagger UI protected with JWT “Authorize” button.
+
+### Frequently Used Endpoints
+| Method | Route | Notes |
+| --- | --- | --- |
+| POST | `/api/auth/register` | Creates Identity user + Customer row, returns JWT. |
+| POST | `/api/auth/login` | Returns JWT + expiration. |
+| GET | `/api/auth/me` | Basic profile for the current token. |
+| GET | `/api/products` | Filterable catalog (auth required). |
+| POST/PUT/DELETE | `/api/products/{id}` | `RequireAdmin`. |
+| CRUD | `/api/customers` | Admin-only management. |
+| POST | `/api/sales` | Any authenticated user; stock decreases and confirmation email fires. |
+| GET | `/api/sales` | Admin report. |
+| POST | `/api/notifications` | Customers request products; approvals now attach PDF receipts. |
+
+### Configuration
+- PostgreSQL: `ConnectionStrings__Default`.
+- JWT: `Jwt__Issuer`, `Jwt__Audience`, `Jwt__SigningKey`, `Jwt__ExpirationMinutes`.
+- SMTP: `Email__*` (defaults to Gmail; replace in production).
+- Client URLs: `Client:BaseUrl`, `Client:ResetPath`.
+- Admin seed credentials: `Seed__AdminEmail`, `Seed__AdminPassword`.
+
+`appsettings.Development.json` overrides local values; `.env` variables are loaded automatically while debugging.
+
+### Run Locally
 ```bash
-# Restore dependencies
 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet restore
-
-# Run API (defaults to port 5053 per launchSettings)
-dotnet run --project Firmeza.Api
-
-# Optionally run the Razor site
-dotnet run --project Firmeza.Web
+dotnet run --project Firmeza.Api        # https://localhost:7053 / http://localhost:5053
+dotnet run --project Firmeza.Web        # https://localhost:7041 / http://localhost:5065
 ```
-> Tip: when `ConnectionStrings__Default` is defined via `.env`, the API loads it automatically (DotNetEnv in Development).
+Swagger lives under `/swagger`. Use the “Authorize” button with `Bearer {token}`.
 
-### Swagger / Interactive Docs
-- URL: `https://localhost:7053/swagger` (or the configured port).
-- Press **Authorize** and paste `Bearer {token}` to exercise protected endpoints.
-- `Firmeza.Api/Firmeza.Api.http` ships sample requests (register, login, product CRUD).
+## Admin Portal (Firmeza.Web)
+- Razor UI for admins to manage products, customers, sales, approvals, chatbot settings, etc.
+- Customer requests go through `ProductRequestService`: when an admin approves, the service creates a sale, decrements stock, and emails the customer with the PDF receipt attached.
+- Reusable helpers (`DateTimeExtensions`, Excel/PDF services) keep exports and receipts in sync with local time.
+- Same Identity database as the API, so sessions are shared.
 
-### SMTP Emails
-- `IEmailSender` implemented with MailKit (`MailKitEmailSender`) and a `NullEmailSender` fallback.
-- Swap SMTP servers by changing `Email__*` values—no code changes required.
-- When a sale is created, a confirmation email is sent if the customer has an email address.
+### Run Locally
+```bash
+dotnet run --project Firmeza.Web
+# default ports: https://localhost:7041 / http://localhost:5065
+```
 
-## Client SPA (firmeza-client)
+## Customer SPA (firmeza-client)
 ### Highlights
-- Angular 18 + Bootstrap 5 SPA that runs independently from the .NET projects.
-- Auth flow powered by the API: register/login with JWT storage, guard, and interceptor that auto-injects the `Authorization` header and invalidates expired tokens.
-- Product catalog with live filters, availability badges, and an add-to-cart workflow.
-- Persistent shopping cart (LocalStorage) that recalculates subtotal, tax (16%), and totals in real time; quantities are capped by stock.
-- Checkout view posts the sale to `/api/sales`, clears the cart, and calls out the confirmation email sent by the API.
-- Global layout displays the authenticated customer, navigation shortcuts, notification center, and sign-out action.
+- Angular 18 + Bootstrap 5 + RxJS.
+- Auth service stores JWT in localStorage, exposes guards/interceptors, auto-signs out when expired.
+- Catalog filters active products and respects stock levels. Cart stores items locally and calculates subtotal/taxes (16%).
+- Checkout posts to `/api/sales`; upon success the cart clears, the API sends confirmation + PDF, and notifications update.
+- Profile screen lets the customer update full name/email/phone; the session gets refreshed client-side and server-side (API updates all entries sharing that email).
+- Notifications screen polls `/api/notifications` and surfaces approvals/rejections.
 
-### Local Run
+### Run Locally
 ```bash
 cd firmeza-client
 npm install
-npm start
-# App available at http://localhost:4200 (expects the API on http://localhost:5053)
+npm start             # http://localhost:4200 (expects API at http://localhost:5053/api)
+```
+Use `npm test` to run Jasmine/Karma specs (`CartService` sample included).
+
+## Tests
+```bash
+dotnet test                # Runs Firmeza.Tests
+npm test --prefix firmeza-client
 ```
 
-### Environment / Configuration
-- `src/environments/environment.development.ts`: default local setup (API on `http://localhost:5053/api`).
-- `src/environments/environment.ts`: production defaults (same base URL; override via build configs).
-- `src/environments/environment.docker.ts`: used by `ng build --configuration docker` so the container talks to `http://firmeza.api:8080/api`.
-
-### Client Tests
-- Sample Jasmine test (`CartService`) validates subtotal/tax/total calculations. Run all Angular tests with:
+## Docker
 ```bash
-cd firmeza-client
-npm test
-```
-
-## Automated Tests (xUnit)
-- Project: `Firmeza.Tests`.
-- Contains a sample `ProductService` test validating the “only available” filter using EF Core InMemory.
-- Run all tests with:
-```bash
-dotnet test
-```
-
-## Docker & Deployment Draft
-1. Set a secure `JWT_SIGNING_KEY` before publishing (used by `docker-compose`).
-2. Bring up PostgreSQL + API + Web:
-```bash
+# Ensure JWT_SIGNING_KEY and DB credentials are set
 docker compose up --build
+# API -> http://localhost:5000, Web -> http://localhost:5100, SPA -> http://localhost:4200
 ```
-3. Exposed services:
-   - API: `http://localhost:5000`
-   - Razor Web: `http://localhost:5100`
-   - Client SPA: `http://localhost:4200`
-   - PostgreSQL: `localhost:5432` (user/password `postgres`).
-4. Dockerfiles for both projects use multi-stage `dotnet publish`, suitable for production images.
+Each Dockerfile performs a multi-stage publish so the final images are production ready.
 
-## Technical Diagrams
-### Entity-Relationship Model
+## Diagrams
+### ERD
 ```mermaid
 erDiagram
     Product ||--o{ SaleItem : contains
@@ -157,35 +129,42 @@ erDiagram
     }
 ```
 
-### Class/Responsibility Diagram (API)
+### API Responsibilities
 ```mermaid
 classDiagram
     class ProductService {
-        +SearchAsync(params)
-        +GetByIdAsync(id)
-        +CreateAsync(dto,userId)
-        +UpdateAsync(dto)
-        +DeleteAsync(id,force)
+        +SearchAsync()
+        +GetByIdAsync()
+        +CreateAsync()
+        +UpdateAsync()
+        +DeleteAsync()
     }
     class CustomerService {
-        +ListAsync(search)
-        +GetAsync(id)
-        +CreateAsync(dto,userId)
-        +UpdateAsync(dto)
-        +DeleteAsync(id)
+        +ListAsync()
+        +GetAsync()
+        +CreateAsync()
+        +UpdateAsync()
+        +DeleteAsync()
     }
     class SaleService {
-        +ListAsync(from,to)
-        +GetAsync(id)
-        +CreateAsync(dto,userId)
+        +ListAsync()
+        +GetAsync()
+        +CreateAsync()
+    }
+    class ProductRequestService {
+        +CreateAsync()
+        +ListAsync()
+        +UpdateStatusAsync()
     }
     class JwtTokenService {
-        +CreateAsync(user)
+        +CreateAsync()
     }
     ProductService --> AppDbContext
     CustomerService --> AppDbContext
     SaleService --> AppDbContext
     SaleService --> IEmailSender
+    ProductRequestService --> IEmailSender
+    ProductRequestService --> IPdfService
     JwtTokenService --> UserManager
     ProductsController --> ProductService
     CustomersController --> CustomerService
@@ -193,7 +172,7 @@ classDiagram
     AuthController --> JwtTokenService
 ```
 
-## Next Steps
-- Add EF Core migrations to version-control the schema.
-- Expand unit/end-to-end tests (e.g., `SaleService`, `AuthController`).
-- Integrate observability (health checks, structured logging) before production rollout.
+## Roadmap Ideas
+- Track schema with EF Core migrations.
+- Extend automated tests (Sales, Auth, Angular components).
+- Add health checks, structured logging, and metrics exporters.

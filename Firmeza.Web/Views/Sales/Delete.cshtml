@@ -6,7 +6,7 @@
 <p>¿Está seguro de eliminar esta venta? Se eliminará también su recibo y los ítems asociados.</p>
 <dl class="row">
     <dt class="col-sm-3">Fecha</dt>
-    <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</dd>
+    <dd class="col-sm-9">@Model.CreatedAt.ToLocalFromUtc().ToString("yyyy-MM-dd HH:mm")</dd>
     <dt class="col-sm-3">Cliente</dt>
     <dd class="col-sm-9">@Model.Customer?.FullName</dd>
     <dt class="col-sm-3">Total</dt>

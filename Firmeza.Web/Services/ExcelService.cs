@@ -3,6 +3,7 @@ using System.Linq;
 using OfficeOpenXml;
 using Firmeza.Web.Interfaces;
 using Firmeza.Web.Models;
+using Firmeza.Web.Utils;
 
 namespace Firmeza.Web.Services
 {
@@ -78,7 +79,7 @@ namespace Firmeza.Web.Services
             int r = 2;
             foreach (var sale in sales)
             {
-                ws.Cells[r, 1].Value = sale.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+                ws.Cells[r, 1].Value = sale.CreatedAt.ToLocalFromUtc().ToString("yyyy-MM-dd HH:mm");
                 ws.Cells[r, 2].Value = sale.Customer?.FullName ?? "-";
                 ws.Cells[r, 3].Value = sale.Total;
                 ws.Cells[r, 4].Value = sale.Items.Count;

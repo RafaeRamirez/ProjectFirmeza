@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Firmeza.Web.Models
 {
@@ -18,5 +19,8 @@ namespace Firmeza.Web.Models
         public string? ProcessedByUserId { get; set; }
         public Guid? SaleId { get; set; }
         public Sale? Sale { get; set; }
+
+        [NotMapped]
+        public string? RequestedByName { get; set; }
     }
 }

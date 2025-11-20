@@ -1,0 +1,40 @@
+<section class="profile-page app-container">
+  <h1 class="mb-4">Mis datos personales</h1>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="save()" class="card shadow-sm p-4" *ngIf="!loading">
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <label class="form-label">Nombre completo</label>
+        <input formControlName="fullName" type="text" class="form-control" [class.is-invalid]="form.controls.fullName.invalid && form.controls.fullName.touched" />
+        <div class="invalid-feedback">Ingresa tu nombre.</div>
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label">Correo electrónico</label>
+        <input formControlName="email" type="email" class="form-control" [class.is-invalid]="form.controls.email.invalid && form.controls.email.touched" />
+        <div class="invalid-feedback">Ingresa un correo válido.</div>
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label">Teléfono</label>
+        <input formControlName="phone" type="tel" class="form-control" />
+      </div>
+    </div>
+    <div class="d-flex flex-column flex-md-row gap-3 mt-4">
+      <button class="btn btn-primary" type="submit" [disabled]="saving">
+        <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+        Guardar cambios
+      </button>
+      <button class="btn btn-outline-danger ms-md-auto" type="button" (click)="deleteProfile()" [disabled]="deleting">
+        <span *ngIf="deleting" class="spinner-border spinner-border-sm me-2"></span>
+        Eliminar mi cuenta
+      </button>
+    </div>
+  </form>
+</section>

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -17,7 +18,7 @@ namespace Firmeza.Web.Services
             _settings = options.Value;
         }
 
-        public async Task SendAsync(string to, string subject, string htmlMessage)
+        public async Task SendAsync(string to, string subject, string htmlMessage, IEnumerable<EmailAttachment>? attachments = null)
         {
             if (string.IsNullOrWhiteSpace(_settings.Host))
                 throw new InvalidOperationException("El Host SMTP no está configurado.");
@@ -31,7 +32,17 @@ namespace Firmeza.Web.Services
                 string.IsNullOrWhiteSpace(_settings.From) ? _settings.User : _settings.From));
             message.To.Add(MailboxAddress.Parse(to));
             message.Subject = subject;
-            message.Body = new BodyBuilder { HtmlBody = htmlMessage }.ToMessageBody();
+            var builder = new BodyBuilder { HtmlBody = htmlMessage };
+            if (attachments != null)
+            {
+                foreach (var attachment in attachments)
+                {
+                    if (attachment?.Content == null || attachment.Content.Length == 0 || string.IsNullOrWhiteSpace(attachment.FileName))
+                        continue;
+                    builder.Attachments.Add(attachment.FileName, attachment.Content, ContentType.Parse(attachment.ContentType ?? "application/octet-stream"));
+                }
+            }
+            message.Body = builder.ToMessageBody();
 
             using var client = new SmtpClient();
 

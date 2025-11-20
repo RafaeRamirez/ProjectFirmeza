@@ -1,5 +1,6 @@
 using Firmeza.Web.Interfaces;
 using Firmeza.Web.Models;
+using Firmeza.Web.Utils;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace Firmeza.Web.Services
                     p.Content().Column(col =>
                     {
                         col.Item().Text($"Cliente: {customer.FullName}");
-                        col.Item().Text($"Fecha: {sale.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm}");
+                        col.Item().Text($"Fecha: {sale.CreatedAt.ToLocalFromUtc():yyyy-MM-dd HH:mm}");
                         col.Item().Table(t =>
                         {
                             t.ColumnsDefinition(cd =>

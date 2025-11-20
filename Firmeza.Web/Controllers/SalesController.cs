@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Security.Claims;
 using System.Collections.Generic;
+using Firmeza.Web.Utils;
 namespace Firmeza.Web.Controllers{
 [Authorize(Policy="RequireAdmin")]
 public class SalesController:Controller{
@@ -31,7 +32,7 @@ public class SalesController:Controller{
         var monthlyFilter = Request.Query["monthly"].ToString();
         var yearlyFilter = Request.Query["yearly"].ToString();
 
-        var localEntries = sales.Select(s => new { Date = s.CreatedAt.ToLocalTime(), Amount = s.Total }).ToList();
+        var localEntries = sales.Select(s => new { Date = s.CreatedAt.ToLocalFromUtc(), Amount = s.Total }).ToList();
         ViewBag.TotalSalesAmount = localEntries.Sum(x => x.Amount);
         var dailyGroups = localEntries
             .GroupBy(x => x.Date.Date)

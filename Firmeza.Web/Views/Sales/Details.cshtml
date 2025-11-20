@@ -6,7 +6,7 @@
 }
 
 <h2>Detalle de venta</h2>
-<p><strong>Fecha:</strong> @Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
+<p><strong>Fecha:</strong> @Model.CreatedAt.ToLocalFromUtc().ToString("yyyy-MM-dd HH:mm")</p>
 
 <table class="table table-striped">
     <thead>

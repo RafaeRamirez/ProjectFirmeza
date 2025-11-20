@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text;
 using Firmeza.Api.Contracts.Dtos.Auth;
 using Firmeza.Api.Contracts.Dtos.Customers;
+using Firmeza.Api.Contracts.Dtos.Profile;
 using Firmeza.Api.Domain.Entities;
 using Firmeza.Api.Services;
 using Firmeza.Api.Services.Abstractions;
@@ -91,6 +92,7 @@ public class AuthController : ControllerBase
             Email = dto.Email,
             Phone = dto.Phone
         }, user.Id);
+        await _customers.UpdateAllByEmailAsync(dto.Email, dto.FullName, dto.Phone);
 
         var token = await _tokenService.CreateAsync(user);
         return Ok(token with
@@ -197,6 +199,115 @@ public class AuthController : ControllerBase
         }
 
         return Ok(response);
+    }
+
+    [HttpGet("profile")]
+    [Authorize]
+    public async Task<ActionResult<ProfileDto>> GetProfile()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        var customer = await _customers.GetByUserAsync(user.Id);
+        var dto = new ProfileDto(
+            customer?.FullName ?? (user.Email ?? "Usuario"),
+            user.Email ?? string.Empty,
+            customer?.Phone
+        );
+        return Ok(dto);
+    }
+
+    [HttpPut("profile")]
+    [Authorize]
+    public async Task<ActionResult<ProfileDto>> UpdateProfile(ProfileUpdateDto dto)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        if (!string.Equals(user.Email, dto.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            var existing = await _userManager.FindByEmailAsync(dto.Email);
+            if (existing is not null && existing.Id != user.Id)
+            {
+                return Conflict("Ya existe otra cuenta registrada con ese correo.");
+            }
+        }
+
+        user.Email = dto.Email;
+        user.UserName = dto.Email;
+        user.EmailConfirmed = true;
+        var userResult = await _userManager.UpdateAsync(user);
+        if (!userResult.Succeeded)
+        {
+            var errors = string.Join(";", userResult.Errors.Select(e => e.Description));
+            return StatusCode(StatusCodes.Status500InternalServerError, $"No se pudo actualizar la cuenta: {errors}");
+        }
+
+        var customer = await _customers.GetByUserAsync(user.Id);
+        if (customer is null)
+        {
+            customer = await _customers.CreateAsync(new CustomerCreateDto
+            {
+                FullName = dto.FullName,
+                Email = dto.Email,
+                Phone = dto.Phone
+            }, user.Id);
+        }
+        else
+        {
+            await _customers.UpdateAsync(new CustomerUpdateDto
+            {
+                Id = customer.Id,
+                FullName = dto.FullName,
+                Email = dto.Email,
+                Phone = dto.Phone
+            });
+            customer = await _customers.GetByUserAsync(user.Id);
+        }
+
+        var profile = new ProfileDto(
+            customer?.FullName ?? dto.FullName,
+            dto.Email,
+            customer?.Phone ?? dto.Phone
+        );
+        await _customers.UpdateAllByEmailAsync(dto.Email, dto.FullName, dto.Phone);
+        return Ok(profile);
+    }
+
+    [HttpDelete("profile")]
+    [Authorize]
+    public async Task<IActionResult> DeleteProfile()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        var customer = await _customers.GetByUserAsync(user.Id);
+        if (customer is not null)
+        {
+            var result = await _customers.DeleteAsync(customer.Id);
+            if (result.HasSales)
+            {
+                return Conflict("No puedes eliminar tus datos porque existen compras registradas.");
+            }
+        }
+
+        var deleteUser = await _userManager.DeleteAsync(user);
+        if (!deleteUser.Succeeded)
+        {
+            var errors = string.Join(";", deleteUser.Errors.Select(e => e.Description));
+            return StatusCode(StatusCodes.Status500InternalServerError, $"No se pudo eliminar la cuenta: {errors}");
+        }
+
+        return NoContent();
     }
 
     [HttpPost("reset-password")]

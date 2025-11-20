@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Firmeza.Web.Interfaces;
+using Firmeza.Web.Models;
 
 namespace Firmeza.Web.Services
 {
@@ -17,10 +20,15 @@ namespace Firmeza.Web.Services
             _logger = logger;
         }
 
-        public Task SendAsync(string to, string subject, string htmlMessage)
+        public Task SendAsync(string to, string subject, string htmlMessage, IEnumerable<EmailAttachment>? attachments = null)
         {
-            _logger.LogInformation("Simulación de correo (sin SMTP). Destinatario: {To}, Asunto: {Subject}, Contenido: {Content}",
-                to, subject, htmlMessage);
+            var attachmentNames = attachments?
+                .Where(a => a != null && !string.IsNullOrWhiteSpace(a.FileName))
+                .Select(a => a!.FileName)
+                .ToList();
+
+            _logger.LogInformation("Simulación de correo (sin SMTP). Destinatario: {To}, Asunto: {Subject}, Contenido: {Content}, Adjuntos: {Attachments}",
+                to, subject, htmlMessage, attachmentNames == null || attachmentNames.Count == 0 ? "N/A" : string.Join(", ", attachmentNames));
             return Task.CompletedTask;
         }
     }

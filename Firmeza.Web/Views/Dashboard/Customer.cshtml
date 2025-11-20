@@ -114,7 +114,7 @@
                                 <div><a asp-controller="Sales" asp-action="Details" asp-route-id="@req.SaleId.Value">Ver venta</a></div>
                             }
                         </td>
-                        <td>@req.RequestedAt.ToLocalTime().ToString("g")</td>
+                        <td>@req.RequestedAt.ToLocalFromUtc().ToString("g")</td>
                     </tr>
                 }
                 </tbody>

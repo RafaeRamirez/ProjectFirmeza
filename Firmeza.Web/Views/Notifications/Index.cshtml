@@ -36,7 +36,7 @@ else
                     <td>@r.Product?.Name</td>
                     <td><span class="badge @(r.Status == "Approved" ? "bg-success" : r.Status == "Rejected" ? "bg-danger" : "bg-warning text-dark")">@r.Status</span></td>
                     <td>@r.ResponseMessage</td>
-                    <td>@(r.ProcessedAt?.ToLocalTime().ToString("g") ?? r.RequestedAt.ToLocalTime().ToString("g"))</td>
+                    <td>@(r.ProcessedAt?.ToLocalFromUtc().ToString("g") ?? r.RequestedAt.ToLocalFromUtc().ToString("g"))</td>
                 </tr>
             }
             </tbody>

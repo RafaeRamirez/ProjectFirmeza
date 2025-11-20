@@ -93,6 +93,11 @@ public class SalesController : ControllerBase
             Email = email
         };
 
-        return await _customers.CreateAsync(dto, userId);
+        var created = await _customers.CreateAsync(dto, userId);
+        if (!string.IsNullOrWhiteSpace(dto.Email))
+        {
+            await _customers.UpdateAllByEmailAsync(dto.Email, dto.FullName, dto.Phone);
+        }
+        return created;
     }
 }
